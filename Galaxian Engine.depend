@@ -1,0 +1,58 @@
+# depslib dependency file v1.0
+1757533271 source:c:\users\victor\desktop\codigos c++\galaxian engine\gameapp.cpp
+	<iostream>
+	"gameApp.h"
+	"player.h"
+	"screen.h"
+	"renderer.h"
+
+1757358460 c:\users\victor\desktop\codigos c++\galaxian engine\gameapp.h
+	"player.h"
+	"screen.h"
+	"mesh.h"
+
+1756932836 c:\users\victor\desktop\codigos c++\galaxian engine\player.h
+	<iostream>
+	<windows.h>
+	"vector.h"
+
+1757529560 c:\users\victor\desktop\codigos c++\galaxian engine\vector.h
+
+1757528238 source:c:\users\victor\desktop\codigos c++\galaxian engine\main.cpp
+	<iostream>
+	<string>
+	<vector>
+	"gameApp.h"
+
+1756932777 source:c:\users\victor\desktop\codigos c++\galaxian engine\player.cpp
+
+1757532767 source:c:\users\victor\desktop\codigos c++\galaxian engine\renderer.cpp
+	<iostream>
+	<vector>
+	"vector.h"
+	"screen.h"
+	"renderer.h"
+	<math.h>
+	"mesh.h"
+
+1757528315 c:\users\victor\desktop\codigos c++\galaxian engine\renderer.h
+	<vector>
+	"vector.h"
+	"screen.h"
+	"mesh.h"
+
+1757358160 c:\users\victor\desktop\codigos c++\galaxian engine\screen.h
+	<iostream>
+	<vector>
+	"vector.h"
+	<windows.h>
+
+1757355044 source:c:\users\victor\desktop\codigos c++\galaxian engine\screen.cpp
+
+1757346877 source:c:\users\victor\desktop\codigos c++\galaxian engine\3dmesh.cpp
+
+1757532427 c:\users\victor\desktop\codigos c++\galaxian engine\mesh.h
+	<vector>
+	"vector.h"
+	<fstream>
+
