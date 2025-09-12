@@ -15,6 +15,7 @@ void start(){
 }
 
 void main_loop(){
+    //aaaaaaaaaaaaaaaaaaa
     float move_speed = 0.01;
     //game_screen.draw_pixel(9, 9, '#');
     if(GetKeyState(0x57) & 0x8000){
@@ -46,6 +47,13 @@ void main_loop(){
         if(GetKeyState(0x45) & 0x8000){
             cout<<"apertou e"<<endl;
             m.pos.y -= move_speed;
+        }
+        //apertou f
+        if(GetKeyState(0x46) & 0x8000){
+            cout<<"apertou f"<<endl;
+            m.rotation.x += 0.001;
+            m.rotation.y += 0.001;
+            m.rotation.z += 0.001;
         }
     game_screen.gotoxy(0, 0);
     //draw_points(&game_screen, m.vertices, m.pos);

@@ -23,6 +23,9 @@ public:
         this->y += a.y;
         this->z += a.z;
     }
+    void print(){
+        std::cout<<"X: "<<x<<" Y: "<<y<<" Z :"<<z<<std::endl;
+    }
 };
 
 class vector2{

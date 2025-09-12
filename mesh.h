@@ -8,9 +8,11 @@ public:
     std::vector <float> vertices;
     std::vector <int> triangles;
     vector3 pos;
+    vector3 rotation;
 
     mesh(){
-        pos.set(5, 5, -30);
+        pos.set(5, 5, -50);
+        rotation.set(0, 0, 0);
     }
 
     //check if a string starts with "starter"

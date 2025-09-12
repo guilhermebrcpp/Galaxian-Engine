@@ -6,10 +6,45 @@
 #include <math.h>
 #include "mesh.h"
 
-vector2 convert_3d_to_2d(vector3 a, float fov){
+vector2 convert_3d_to_2d(vector3 point, vector3 model_position, vector3 model_rotation, float fov){
+    //x rotation
+    vector3 rotationxx; rotationxx.set(1, 0, 0);
+    vector3 rotationxy; rotationxy.set(0, cos(model_rotation.x), -sin(model_rotation.x));
+    vector3 rotationxz; rotationxz.set(0, sin(model_rotation.x), cos(model_rotation.x));
+    //y rotation
+    vector3 rotationyx; rotationyx.set(cos(model_rotation.y), 0, sin(model_rotation.y));
+    vector3 rotationyy; rotationyy.set(0, 1, 0);
+    vector3 rotationyz; rotationyz.set(-sin(model_rotation.y), 0, cos(model_rotation.y));
+    //z rotation
+    vector3 rotationzx; rotationzx.set(cos(model_rotation.z),-sin(model_rotation.z), 0);
+    vector3 rotationzy; rotationzy.set(sin(model_rotation.z), cos(model_rotation.z), 0);
+    vector3 rotationzz; rotationzz.set(0, 0, 1);
+
+    vector3 rotated_point;
+
+    //rotated by x axix
+    rotated_point.x = point.x*rotationxx.x + point.y*rotationxx.y + point.z*rotationxx.z;
+    rotated_point.y = point.x*rotationxy.x + point.y*rotationxy.y + point.z*rotationxy.z;
+    rotated_point.z = point.x*rotationxz.x + point.y*rotationxz.y + point.z*rotationxz.z;
+
+    vector3 rotated_pointx = rotated_point;
+    //rotated by y axix
+    rotated_point.x = rotated_pointx.x*rotationyx.x + rotated_pointx.y*rotationyx.y + rotated_pointx.z*rotationyx.z;
+    rotated_point.y = rotated_pointx.x*rotationyy.x + rotated_pointx.y*rotationyy.y + rotated_pointx.z*rotationyy.z;
+    rotated_point.z = rotated_pointx.x*rotationyz.x + rotated_pointx.y*rotationyz.y + rotated_pointx.z*rotationyz.z;
+
+    vector3 rotated_pointy = rotated_point;
+    //rotated by z axix
+    rotated_point.x = rotated_pointy.x*rotationzx.x + rotated_pointy.y*rotationzx.y + rotated_pointy.z*rotationzx.z;
+    rotated_point.y = rotated_pointy.x*rotationzy.x + rotated_pointy.y*rotationzy.y + rotated_pointy.z*rotationzy.z;
+    rotated_point.z = rotated_pointy.x*rotationzz.x + rotated_pointy.y*rotationzz.y + rotated_pointy.z*rotationzz.z;
+
+    //position
+    rotated_point.add(model_position);
+
     vector2 new_point;
-    new_point.x = (fov * a.x) / (fov + a.z);
-    new_point.y = (fov * a.y) / (fov + a.z);
+    new_point.x = (fov * rotated_point.x) / (fov + rotated_point.z);
+    new_point.y = (fov * rotated_point.y) / (fov + rotated_point.z);
 
     return new_point;
 }
@@ -22,9 +57,9 @@ void draw_points(screen* s, const std::vector<float> points, vector3 pos){
             vec3.x =  points[i+0];
             vec3.y = -points[i+1];
             vec3.z =  points[i+2];
-            vec3.add(pos);
-            vector2 vec2 = convert_3d_to_2d(vec3, 40);
-            s->draw_pixel(vec2.x, vec2.y, '#');
+           // vec3.add(pos);
+            //vector2 vec2 = convert_3d_to_2d(vec3, 40);
+            //s->draw_pixel(vec2.x, vec2.y, '#');
             std::cout<<"DESENHEI UM PONTO"<<std::endl;
         }
     }
@@ -75,18 +110,20 @@ void render_mesh(screen* s, mesh m){
     for(int i = 0; i<m.vertices.size(); i += 3){
         vector3 point;
         point.set(m.vertices[i+0], m.vertices[i+1], m.vertices[i+2]);
-        point.add(m.pos);
-        vector2 new_point = convert_3d_to_2d(point, 40);
+        vector2 new_point = convert_3d_to_2d(point, m.pos, m.rotation, 90);
         converted_points.push_back(new_point);
     }
 
-    //system("pause");
+    //draw points
+    /*
+    for(int i = 0; i<m.triangles.size(); i++){
+        char color = '#';
+        s->draw_pixel(converted_points[i].x, converted_points[i].y, color);
+    }*/
+
+    //draw triangles:
     std::string colors = "#@!SAOLK";
     for(int i = 0; i<m.triangles.size(); i+=3){
-        //std::cout<<"index 1 triangulo:"<<m.triangles[i+0]<<std::endl;
-        //std::cout<<"index 2 triangulo:"<<m.triangles[i+1]<<std::endl;
-        //std::cout<<"index 3 triangulo:"<<m.triangles[i+2]<<std::endl;
-        //system("pause");
         char color = '#';//colors[rand()%colors.length()-1];
         draw_triangle(s, converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1], color);
         //std::cout<<"DESENHEI UM TRIANGULO!!!!!!!"<<std::endl;
