@@ -49,21 +49,6 @@ vector2 convert_3d_to_2d(vector3 point, vector3 model_position, vector3 model_ro
     return new_point;
 }
 
-void draw_points(screen* s, const std::vector<float> points, vector3 pos){
-    std::cout<<"o tamanho do bagulho eh:"<<points.size()<<std::endl;
-        for(int i = 0; i < points.size(); i+=3){
-            //std::cout<<"i:"<<i<<std::endl;
-            vector3 vec3;
-            vec3.x =  points[i+0];
-            vec3.y = -points[i+1];
-            vec3.z =  points[i+2];
-           // vec3.add(pos);
-            //vector2 vec2 = convert_3d_to_2d(vec3, 40);
-            //s->draw_pixel(vec2.x, vec2.y, '#');
-            std::cout<<"DESENHEI UM PONTO"<<std::endl;
-        }
-    }
-
 float triangle_area(vector2 a, vector2 b, vector2 c){
 //(1/2) (( x1(y2 − y3) + x2(y3 − y1) + x3(y1 − y2)))
     return (abs( (a.x*(b.y - c.y)) + (b.x*(c.y - a.y)) + (c.x*(a.y - b.y))))/2;
@@ -76,7 +61,7 @@ bool is_point_on_triangle(vector2 p, vector2 tri[]){
     float area2 = triangle_area(tri[1], tri[2], p);
     float area3 = triangle_area(tri[2], tri[0], p);
 
-    return ((area1 + area2 + area3)-0.1 < tri_area) && tri_area > 0;
+    return ((area1 + area2 + area3)-10 < tri_area) && tri_area > 0;
 }
 
 void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color){
@@ -104,6 +89,11 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color){
     }
 }
 
+bool is_triangle_ccw(vector2 a, vector2 b, vector2 c){
+//(x1(y2 - y3) + x2(y3 - y1) + x3(y1 - y2)) results in a positive value, the triangle is in counterclockwise orde
+    return ((a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) > 0);
+}
+
 void render_mesh(screen* s, mesh m){
     std::vector<vector2> converted_points;
 
@@ -122,11 +112,20 @@ void render_mesh(screen* s, mesh m){
     }*/
 
     //draw triangles:
-    std::string colors = "#@!SAOLK";
+    std::string colors = ".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+    int color_count = -1;
     for(int i = 0; i<m.triangles.size(); i+=3){
-        char color = '#';//colors[rand()%colors.length()-1];
+
+        color_count++;
+        if(color_count > colors.length()-1) color_count = 0;
+        //check if the triangle is counter clockwise
+        if(is_triangle_ccw(converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1]))
+            continue;
+
+        char color = colors[color_count];
         draw_triangle(s, converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1], color);
         //std::cout<<"DESENHEI UM TRIANGULO!!!!!!!"<<std::endl;
+
     }
 
     std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;

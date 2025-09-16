@@ -11,7 +11,7 @@ public:
     vector3 rotation;
 
     mesh(){
-        pos.set(5, 5, -50);
+        pos.set(5, 5, -70);
         rotation.set(0, 0, 0);
     }
 
@@ -56,24 +56,22 @@ public:
             else if(starts_with("f ", line)){
                 std::string number;
                 bool new_number = true;
+                int vertices_count = 1;
                 for(int i = 2; i < line.length(); i++){
                     if(new_number == true){
-                        if(line[i] != '/')
+                        if(line[i] != '/' && i+1 < line.length())
                             number += line[i];
-                        else
-                            new_number = false;
-                    }else{
-                        //last triangle in the line
-                        if(i+1 >= line.length()){
-                            triangles.push_back(triangles[triangles.size()-3]);
-                            triangles.push_back(triangles[triangles.size()-2]);
+                        else{
+                            if(vertices_count > 3){
+                                triangles.push_back(triangles[triangles.size()-3]);
+                                triangles.push_back(triangles[triangles.size()-2]);
+                            }
                             triangles.push_back(std::stof(number));
-                            number = "";
-                            break;
+                            new_number = false;
+                            vertices_count++;
                         }
+                    }else{
                         if(line[i] == ' '){
-                            if(number.length() != 0)
-                                triangles.push_back(std::stof(number));
                             number = "";
                             new_number = true;
                             continue;

@@ -56,3 +56,59 @@
 	"vector.h"
 	<fstream>
 
+1757528238 source:c:\users\victor\desktop\codigos c++\galaxian-engine\main.cpp
+	<iostream>
+	<string>
+	<vector>
+	"gameApp.h"
+
+1757358460 c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.h
+	"player.h"
+	"screen.h"
+	"mesh.h"
+
+1756932836 c:\users\victor\desktop\codigos c++\galaxian-engine\player.h
+	<iostream>
+	<windows.h>
+	"vector.h"
+
+1757698360 c:\users\victor\desktop\codigos c++\galaxian-engine\vector.h
+
+1757358160 c:\users\victor\desktop\codigos c++\galaxian-engine\screen.h
+	<iostream>
+	<vector>
+	"vector.h"
+	<windows.h>
+
+1758045966 c:\users\victor\desktop\codigos c++\galaxian-engine\mesh.h
+	<vector>
+	"vector.h"
+	<fstream>
+
+1756932777 source:c:\users\victor\desktop\codigos c++\galaxian-engine\player.cpp
+
+1757355044 source:c:\users\victor\desktop\codigos c++\galaxian-engine\screen.cpp
+
+1758045170 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
+	<iostream>
+	"gameApp.h"
+	"player.h"
+	"screen.h"
+	"renderer.h"
+	<windows.h>
+
+1757528315 c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.h
+	<vector>
+	"vector.h"
+	"screen.h"
+	"mesh.h"
+
+1758039669 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
+	<iostream>
+	<vector>
+	"vector.h"
+	"screen.h"
+	"renderer.h"
+	<math.h>
+	"mesh.h"
+

@@ -3,6 +3,7 @@
 #include "player.h"
 #include "screen.h"
 #include "renderer.h"
+#include <windows.h>
 
 using namespace std;
 
@@ -11,7 +12,7 @@ screen game_screen(50, 50);
 mesh m;
 
 void start(){
-    m.load_model("models/cube.obj");
+    m.load_model("models/suzane.obj");
 }
 
 void main_loop(){
