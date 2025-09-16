@@ -11,7 +11,7 @@ public:
     vector3 rotation;
 
     mesh(){
-        pos.set(5, 5, -70);
+        pos.set(5, 5, -20);
         rotation.set(0, 0, 0);
     }
 

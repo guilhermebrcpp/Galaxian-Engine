@@ -6,11 +6,10 @@
 
 class screen{
 public:
-
     std::vector<std::string> screen_data;
     int screen_width;
     int screen_height;
-    std::vector<float> teste;
+    std::vector<std::vector<float>> depth_data;
     vector3 pos;
 
     screen(int screen_width, int screen_height){
@@ -23,16 +22,18 @@ public:
         for(int i = 0; i<screen_height; i++)
             screen_data.push_back(setup);
 
+        std::vector<float> temp;
+        for(int i = 0; i<screen_width; i++)
+            temp.push_back(0);
+        for(int j = 0; j<screen_height; j++)
+            depth_data.push_back(temp);
+
         pos.set(7, 4, -5);
     }
 
     void gotoxy(short x, short y) {
-        //#ifdef _WIN32
         COORD coord = { x, y };
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-        //#else
-        //    printf("%c[%d;%df", 0x1B, y, x);
-        //#endif
     }
 
     bool is_on_screen(int x, int y){
