@@ -6,7 +6,10 @@
 #include <math.h>
 #include "mesh.h"
 
-vector2 convert_3d_to_2d(vector3 point, vector3 model_position, vector3 model_rotation, int screen_width, int screen_height, float fov){
+//fazer funcao local to world
+//fazer funcao world to screen
+
+vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rotation, vector3 scale){
     //x rotation
     vector3 rotationxx; rotationxx.set(1, 0, 0);
     vector3 rotationxy; rotationxy.set(0, cos(model_rotation.x), -sin(model_rotation.x));
@@ -20,31 +23,40 @@ vector2 convert_3d_to_2d(vector3 point, vector3 model_position, vector3 model_ro
     vector3 rotationzy; rotationzy.set(sin(model_rotation.z), cos(model_rotation.z), 0);
     vector3 rotationzz; rotationzz.set(0, 0, 1);
 
-    vector3 rotated_point;
+    vector3 final_point;
 
     //rotated by x axix
-    rotated_point.x = point.x*rotationxx.x + point.y*rotationxx.y + point.z*rotationxx.z;
-    rotated_point.y = point.x*rotationxy.x + point.y*rotationxy.y + point.z*rotationxy.z;
-    rotated_point.z = point.x*rotationxz.x + point.y*rotationxz.y + point.z*rotationxz.z;
+    final_point.x = point.x*rotationxx.x + point.y*rotationxx.y + point.z*rotationxx.z;
+    final_point.y = point.x*rotationxy.x + point.y*rotationxy.y + point.z*rotationxy.z;
+    final_point.z = point.x*rotationxz.x + point.y*rotationxz.y + point.z*rotationxz.z;
 
-    vector3 rotated_pointx = rotated_point;
+    point = final_point;
     //rotated by y axix
-    rotated_point.x = rotated_pointx.x*rotationyx.x + rotated_pointx.y*rotationyx.y + rotated_pointx.z*rotationyx.z;
-    rotated_point.y = rotated_pointx.x*rotationyy.x + rotated_pointx.y*rotationyy.y + rotated_pointx.z*rotationyy.z;
-    rotated_point.z = rotated_pointx.x*rotationyz.x + rotated_pointx.y*rotationyz.y + rotated_pointx.z*rotationyz.z;
+    final_point.x = point.x*rotationyx.x + point.y*rotationyx.y + point.z*rotationyx.z;
+    final_point.y = point.x*rotationyy.x + point.y*rotationyy.y + point.z*rotationyy.z;
+    final_point.z = point.x*rotationyz.x + point.y*rotationyz.y + point.z*rotationyz.z;
 
-    vector3 rotated_pointy = rotated_point;
+    point = final_point;
     //rotated by z axix
-    rotated_point.x = rotated_pointy.x*rotationzx.x + rotated_pointy.y*rotationzx.y + rotated_pointy.z*rotationzx.z;
-    rotated_point.y = rotated_pointy.x*rotationzy.x + rotated_pointy.y*rotationzy.y + rotated_pointy.z*rotationzy.z;
-    rotated_point.z = rotated_pointy.x*rotationzz.x + rotated_pointy.y*rotationzz.y + rotated_pointy.z*rotationzz.z;
+    final_point.x = point.x*rotationzx.x + point.y*rotationzx.y + point.z*rotationzx.z;
+    final_point.y = point.x*rotationzy.x + point.y*rotationzy.y + point.z*rotationzy.z;
+    final_point.z = point.x*rotationzz.x + point.y*rotationzz.y + point.z*rotationzz.z;
+
+    //scale
+    final_point.x *= scale.x;
+    final_point.y *= scale.y;
+    final_point.z *= scale.z;
 
     //position
-    rotated_point.add(model_position);
+    final_point.add(model_position);
 
+    return final_point;
+}
+
+vector2 world_to_screen(vector3 point, float fov, int screen_width, int screen_height){
     vector2 new_point;
-    new_point.x = screen_width  / 2 + (fov * rotated_point.x) / (fov + rotated_point.z);
-    new_point.y = screen_height / 2 + (fov * rotated_point.y) / (fov + rotated_point.z);
+    new_point.x = screen_width  / 2 + (fov * point.x) / (fov + point.z);
+    new_point.y = screen_height / 2 + (fov * point.y) / (fov + point.z);
 
     return new_point;
 }
@@ -70,7 +82,7 @@ bool is_point_on_triangle(vector2 p, vector2 tri[], vector3 *weights){
     return ((area1 + area2 + area3)-10 < tri_area) && tri_area > 0;
 }
 
-void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color){
+void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color, vector3 zvlalues){
     int bounding_box_x_min = std::min(std::min(a.x, b.x), c.x);
     int bounding_box_x_max = std::max(std::max(a.x, b.x), c.x);
     int bounding_box_y_min = std::min(std::min(a.y, b.y), c.y);
@@ -84,13 +96,18 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color){
     */
     for(int i = bounding_box_y_min; i < bounding_box_y_max; i++){
         for(int j = bounding_box_x_min; j < bounding_box_x_max; j++){
+            if(!s->is_on_screen(j, i)) continue;
             vector2 point;
             point.set(j, i);
             vector3 current_weight;
             if(is_point_on_triangle(point, tri, &current_weight)){
+
+                float depth = current_weight.dot(zvlalues);
+                if(depth > s->depth_data[i][j]) continue;
+
+                s->depth_data[i][j] = depth;
+                //std::cout<<"depth:"<<depth<<std::endl;
                 s->draw_pixel(j, i, color);
-                //current_weight
-                //s->depth_data[i][j] =
             }
         }
     }
@@ -104,11 +121,16 @@ bool is_triangle_ccw(vector2 a, vector2 b, vector2 c){
 
 void render_mesh(screen* s, mesh m){
     std::vector<vector2> converted_points;
+    std::vector<vector3> normals;
 
     for(int i = 0; i<m.vertices.size(); i += 3){
         vector3 point;
         point.set(m.vertices[i+0], m.vertices[i+1], m.vertices[i+2]);
-        vector2 new_point = convert_3d_to_2d(point, m.pos, m.rotation, s->screen_width, s->screen_height, 90);
+        point = local_to_world(point, m.pos, m.rotation, m.scale);
+
+        vector2 new_point = world_to_screen(point, 120, s->screen_width, s->screen_height);
+
+        //normals.push_back(new_normal);
         converted_points.push_back(new_point);
     }
 
@@ -128,11 +150,11 @@ void render_mesh(screen* s, mesh m){
         //check if the triangle is counter clockwise
         if(is_triangle_ccw(converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1]))
             continue;
-
+        vector3 zvalues;
+        zvalues.set(m.vertices[((m.triangles[i+0]-1)*3)+2], m.vertices[((m.triangles[i+1]-1)*3)+2], m.vertices[((m.triangles[i+2]-1)*3)+2]);
         char color = colors[color_count];
-        draw_triangle(s, converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1], color);
+        draw_triangle(s, converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1], color, zvalues);
         //std::cout<<"DESENHEI UM TRIANGULO!!!!!!!"<<std::endl;
-
     }
 
     std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;

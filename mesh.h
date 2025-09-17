@@ -9,10 +9,12 @@ public:
     std::vector <int> triangles;
     vector3 pos;
     vector3 rotation;
+    vector3 scale;
 
     mesh(){
-        pos.set(5, 5, -20);
+        pos.set(5, 5, 5);
         rotation.set(0, 0, 0);
+        scale.set(1, 1, 1);
     }
 
     //check if a string starts with "starter"
@@ -84,14 +86,14 @@ public:
 
         inputFile.close();
 
-        std::cout<<"teste size:"<<vertices.size()<<std::endl;
+        std::cout<<"triangle quantity:"<<triangles.size()/3<<std::endl;
 
-        for(int i = 0; i < vertices.size(); i+=3){
+        /*for(int i = 0; i < vertices.size(); i+=3){
             std::cout<<"posicao "<<(i+1)/3<<" valor:"<<vertices[i]<<","<<vertices[i+1]<<","<<vertices[i+2]<<std::endl;
         }
         for(int i = 0; i < triangles.size(); i+=3){
             std::cout<<"triangulo "<<(i+1)/3<<" valor:"<<triangles[i]<<","<<triangles[i+1]<<","<<triangles[i+2]<<std::endl;
-        }
+        }*/
         system("pause");
         system("cls");
     }

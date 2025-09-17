@@ -23,6 +23,11 @@ public:
         this->y += a.y;
         this->z += a.z;
     }
+
+    float dot(vector3 a){
+        return x*a.x + y*a.y + z*a.z;
+    }
+
     void print(){
         std::cout<<"X: "<<x<<" Y: "<<y<<" Z :"<<z<<std::endl;
     }

@@ -24,7 +24,7 @@ public:
 
         std::vector<float> temp;
         for(int i = 0; i<screen_width; i++)
-            temp.push_back(0);
+            temp.push_back(999999999);
         for(int j = 0; j<screen_height; j++)
             depth_data.push_back(temp);
 
@@ -45,14 +45,30 @@ public:
             screen_data[y][x] = c;
     }
 
+    float range(float x1, float y1, float x2, float y2, float x){
+        return (y1-x1) * ((x-x2)/(y2-x2)) + x1;
+    }
+
     void draw_screen(){
+        std::string colors = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'. ";
+        //" .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+
         std::string screen_str;
+        /*
+        for(int i = 0; i<screen_height; i++){
+            for(int j = 0; j<screen_width; j++){
+                screen_str += colors[std::min(int(colors.length()-1), std::max(0, int(range(0, colors.length()-1, -1, 0, depth_data[i][j]))))];
+            }
+            screen_str += '\n';
+        }*/
+
         for(int i = 0; i<screen_height; i++){
             for(int j = 0; j<screen_width; j++){
                 screen_str += screen_data[i][j];
             }
             screen_str += '\n';
         }
+
         std::cout<<screen_str;
     }
 
@@ -60,6 +76,7 @@ public:
         for(int i = 0; i<screen_height; i++){
             for(int j = 0; j<screen_width; j++){
                 screen_data[i][j] = ' ';
+                depth_data[i][j] = 999999999;
             }
         }
     }
