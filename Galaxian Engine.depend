@@ -70,7 +70,7 @@
 	<windows.h>
 	"vector.h"
 
-1758125971 c:\users\victor\desktop\codigos c++\galaxian-engine\vector.h
+1759249067 c:\users\victor\desktop\codigos c++\galaxian-engine\vector.h
 
 1758142925 c:\users\victor\desktop\codigos c++\galaxian-engine\screen.h
 	<iostream>
@@ -78,7 +78,7 @@
 	"vector.h"
 	<windows.h>
 
-1758143117 c:\users\victor\desktop\codigos c++\galaxian-engine\mesh.h
+1759262344 c:\users\victor\desktop\codigos c++\galaxian-engine\mesh.h
 	<vector>
 	"vector.h"
 	<fstream>
@@ -87,7 +87,7 @@
 
 1757355044 source:c:\users\victor\desktop\codigos c++\galaxian-engine\screen.cpp
 
-1758142992 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
+1759265120 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
 	<iostream>
 	"gameApp.h"
 	"player.h"
@@ -101,7 +101,7 @@
 	"screen.h"
 	"mesh.h"
 
-1758143290 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
+1759262682 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
 	<iostream>
 	<vector>
 	"vector.h"

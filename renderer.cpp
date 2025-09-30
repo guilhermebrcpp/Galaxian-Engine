@@ -119,19 +119,60 @@ bool is_triangle_ccw(vector2 a, vector2 b, vector2 c){
     return ((a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) > 0);
 }
 
+vector3 triangle_normal(vector3 a, vector3 b, vector3 c){
+    vector3 v1 = b;
+    v1.sub(a);
+    vector3 v2 = c;
+    v2.sub(a);
+    vector3 normal;
+    //cross product
+    normal.x = (v1.y * v2.z) - (v1.z * v2.y);
+    normal.y = (v1.z * v2.x) - (v1.x * v2.z);
+    normal.z = (v1.x * v2.y) - (v1.y * v2.x);
+
+    //normalize
+    float magnitude = std::sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+    //std::cout<<"magnitude:"<<magnitude<<std::endl;
+    //std::cout<<"Z:"<<normal.z<<std::endl;
+    if(magnitude > 0){
+        normal.x /= magnitude;
+        normal.y /= magnitude;
+        normal.z /= magnitude;
+    }
+    //std::cout<<"olha so to calculando o nomral:"<<std::endl;
+    //normal.print();
+    //std::cout<<"Z depois:"<<normal.z<<std::endl<<std::endl;
+    return normal;
+}
+
+float range(float x1, float y1, float x2, float y2, float x){
+    return (y1-x1) * ((x-x2)/(y2-x2)) + x1;
+}
+
 void render_mesh(screen* s, mesh m){
     std::vector<vector2> converted_points;
+    std::vector<vector3> world_points;
     std::vector<vector3> normals;
+    std::vector<float> zvalues_list;
 
     for(int i = 0; i<m.vertices.size(); i += 3){
         vector3 point;
         point.set(m.vertices[i+0], m.vertices[i+1], m.vertices[i+2]);
         point = local_to_world(point, m.pos, m.rotation, m.scale);
+        world_points.push_back(point);
+        zvalues_list.push_back(point.z);
 
         vector2 new_point = world_to_screen(point, 120, s->screen_width, s->screen_height);
 
         //normals.push_back(new_normal);
         converted_points.push_back(new_point);
+    }
+
+    for(int i = 0; i < world_points.size(); i += 3){
+        //vector3 a = ;
+        //std::cout<<"o normal q to coisando eh:"<<std::endl;
+        //a.print();
+        //normals.push_back(a);
     }
 
     //draw points
@@ -142,7 +183,11 @@ void render_mesh(screen* s, mesh m){
     }*/
 
     //draw triangles:
+
     std::string colors = ".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+    //"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'.";
+    //"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'.";
+    //".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
     int color_count = -1;
     for(int i = 0; i<m.triangles.size(); i+=3){
         color_count++;
@@ -151,12 +196,19 @@ void render_mesh(screen* s, mesh m){
         if(is_triangle_ccw(converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1]))
             continue;
         vector3 zvalues;
-        zvalues.set(m.vertices[((m.triangles[i+0]-1)*3)+2], m.vertices[((m.triangles[i+1]-1)*3)+2], m.vertices[((m.triangles[i+2]-1)*3)+2]);
-        char color = colors[color_count];
-        draw_triangle(s, converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1], color, zvalues);
-        //std::cout<<"DESENHEI UM TRIANGULO!!!!!!!"<<std::endl;
-    }
+        zvalues.set(zvalues_list[m.triangles[i+0]-1], zvalues_list[m.triangles[i+1]-1], zvalues_list[m.triangles[i+2]-1]);
+        //dot product with the normals
+        vector3 light_direction;
+        light_direction.set(0, -1, 0);
 
+        float dot = triangle_normal(world_points[m.triangles[i+0]-1], world_points[m.triangles[i+1]-1], world_points[m.triangles[i+2]-1]).dot(light_direction);
+
+        if(dot < -1 || dot > 1) continue;
+        if(dot < 0) dot = 0;
+
+        char color = colors[int(range(0, colors.length(), 0, 1, dot))];
+        draw_triangle(s, converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1], color, zvalues);
+    }
     std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;
     //system("pause");
 }

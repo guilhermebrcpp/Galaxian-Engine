@@ -24,6 +24,12 @@ public:
         this->z += a.z;
     }
 
+    void sub(vector3 a){
+        this->x -= a.x;
+        this->y -= a.y;
+        this->z -= a.z;
+    }
+
     float dot(vector3 a){
         return x*a.x + y*a.y + z*a.z;
     }
