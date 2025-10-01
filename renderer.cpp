@@ -53,6 +53,48 @@ vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rota
     return final_point;
 }
 
+vector3 to_view_space(vector3 point, vector3 camera_position, vector3 camera_rotation){
+    //x rotation
+    vector3 rotationxx; rotationxx.set(1, 0, 0);
+    vector3 rotationxy; rotationxy.set(0, cos(-camera_rotation.x), -sin(-camera_rotation.x));
+    vector3 rotationxz; rotationxz.set(0, sin(-camera_rotation.x), cos(-camera_rotation.x));
+    //y rotation
+    vector3 rotationyx; rotationyx.set(cos(-camera_rotation.y), 0, sin(-camera_rotation.y));
+    vector3 rotationyy; rotationyy.set(0, 1, 0);
+    vector3 rotationyz; rotationyz.set(-sin(-camera_rotation.y), 0, cos(-camera_rotation.y));
+    //z rotation
+    vector3 rotationzx; rotationzx.set(cos(-camera_rotation.z),-sin(-camera_rotation.z), 0);
+    vector3 rotationzy; rotationzy.set(sin(-camera_rotation.z), cos(-camera_rotation.z), 0);
+    vector3 rotationzz; rotationzz.set(0, 0, 1);
+
+    vector3 final_point;
+
+    //position
+    point.sub(camera_position);
+
+
+    //rotated by x axix
+    final_point.x = point.x*rotationxx.x + point.y*rotationxx.y + point.z*rotationxx.z;
+    final_point.y = point.x*rotationxy.x + point.y*rotationxy.y + point.z*rotationxy.z;
+    final_point.z = point.x*rotationxz.x + point.y*rotationxz.y + point.z*rotationxz.z;
+
+    point = final_point;
+    //rotated by y axix
+    final_point.x = point.x*rotationyx.x + point.y*rotationyx.y + point.z*rotationyx.z;
+    final_point.y = point.x*rotationyy.x + point.y*rotationyy.y + point.z*rotationyy.z;
+    final_point.z = point.x*rotationyz.x + point.y*rotationyz.y + point.z*rotationyz.z;
+
+    point = final_point;
+    //rotated by z axix
+    final_point.x = point.x*rotationzx.x + point.y*rotationzx.y + point.z*rotationzx.z;
+    final_point.y = point.x*rotationzy.x + point.y*rotationzy.y + point.z*rotationzy.z;
+    final_point.z = point.x*rotationzz.x + point.y*rotationzz.y + point.z*rotationzz.z;
+
+
+
+    return final_point;
+}
+
 vector2 world_to_screen(vector3 point, float fov, int screen_width, int screen_height){
     vector2 new_point;
     new_point.x = screen_width  / 2 + (fov * point.x) / (fov + point.z);
@@ -149,7 +191,7 @@ float range(float x1, float y1, float x2, float y2, float x){
     return (y1-x1) * ((x-x2)/(y2-x2)) + x1;
 }
 
-void render_mesh(screen* s, mesh m){
+void render_mesh(screen* s, mesh m, camera cam){
     std::vector<vector2> converted_points;
     std::vector<vector3> world_points;
     std::vector<vector3> normals;
@@ -159,32 +201,19 @@ void render_mesh(screen* s, mesh m){
         vector3 point;
         point.set(m.vertices[i+0], m.vertices[i+1], m.vertices[i+2]);
         point = local_to_world(point, m.pos, m.rotation, m.scale);
+        point = to_view_space(point, cam.pos, cam.rotation);
         world_points.push_back(point);
         zvalues_list.push_back(point.z);
 
-        vector2 new_point = world_to_screen(point, 120, s->screen_width, s->screen_height);
+        vector2 new_point = world_to_screen(point, cam.fov, s->screen_width, s->screen_height);
 
         //normals.push_back(new_normal);
         converted_points.push_back(new_point);
     }
 
-    for(int i = 0; i < world_points.size(); i += 3){
-        //vector3 a = ;
-        //std::cout<<"o normal q to coisando eh:"<<std::endl;
-        //a.print();
-        //normals.push_back(a);
-    }
-
-    //draw points
-    /*
-    for(int i = 0; i<m.triangles.size(); i++){
-        char color = '#';
-        s->draw_pixel(converted_points[i].x, converted_points[i].y, color);
-    }*/
-
     //draw triangles:
 
-    std::string colors = ".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+    std::string colors = ".'`^\",:;Il!i~+-?][}{1)(|\\/tfXYUJCLQ0OZ#MW&8%B@$";
     //"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'.";
     //"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'.";
     //".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
@@ -197,6 +226,9 @@ void render_mesh(screen* s, mesh m){
             continue;
         vector3 zvalues;
         zvalues.set(zvalues_list[m.triangles[i+0]-1], zvalues_list[m.triangles[i+1]-1], zvalues_list[m.triangles[i+2]-1]);
+        //check if the z values are negative (behing camera)
+        if(zvalues.x < 0 || zvalues.y < 0 || zvalues.z < 0)
+            continue;
         //dot product with the normals
         vector3 light_direction;
         light_direction.set(0, -1, 0);
