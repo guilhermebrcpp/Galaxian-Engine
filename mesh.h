@@ -12,9 +12,9 @@ public:
     vector3 scale;
 
     mesh(){
-        pos.set(5, 5, 7);
+        pos.set(0, 0, 7);//1.5708*2
         rotation.set(0, 0, 0);
-        scale.set(1, 1, 1);
+        scale.set(41, 41, 41);
     }
 
     //check if a string starts with "starter"
@@ -81,7 +81,7 @@ public:
                     }
                 }
             }
-            std::cout << "Read: " << line << std::endl;
+            //std::cout << "Read: " << line << std::endl;
         }
 
         inputFile.close();
@@ -93,7 +93,7 @@ public:
         }
         */
         for(int i = 0; i < triangles.size(); i+=3){
-            std::cout<<"triangulo "<<(i+1)/3<<" valor:"<<triangles[i]<<","<<triangles[i+1]<<","<<triangles[i+2]<<std::endl;
+            //std::cout<<"triangulo "<<(i+1)/3<<" valor:"<<triangles[i]<<","<<triangles[i+1]<<","<<triangles[i+2]<<std::endl;
         }
         system("pause");
         system("cls");

@@ -12,7 +12,7 @@ screen game_screen(330, 170);
 mesh m;
 camera c;
 void start(){
-    m.load_model("models/Alice.obj");
+    m.load_model("models/Suzane.obj");
 }
 
 void main_loop(){
