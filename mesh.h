@@ -14,7 +14,7 @@ public:
     mesh(){
         pos.set(0, 0, 7);//1.5708*2
         rotation.set(0, 0, 0);
-        scale.set(41, 41, 41);
+        scale.set(1, 1, 1);
     }
 
     //check if a string starts with "starter"

@@ -43,6 +43,7 @@
 		<Unit filename="renderer.h" />
 		<Unit filename="screen.cpp" />
 		<Unit filename="screen.h" />
+		<Unit filename="vector.cpp" />
 		<Unit filename="vector.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
