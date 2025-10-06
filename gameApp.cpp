@@ -9,17 +9,27 @@ using namespace std;
 
 player p;
 screen game_screen(330, 170);
-mesh m;
+mesh predio1;
+mesh predio2;
 camera c;
+
 void start(){
-    m.load_model("models/Alice.obj");
+    predio1.load_model("models/predio.obj");
+    predio2.load_model("models/predio.obj");
+    predio2.pos.set(2, 0, 0);
+    p.aviao.load_model("models/aviao.obj");
+    p.aviao.scale.set(0.001, 0.001, 0.001);
+    p.aviao.pos.set(2, 0, -3);
+    p.start();
 }
 
 void main_loop(){
     //2C
     p.loop();
     game_screen.gotoxy(0, 0);
-    render_mesh(&game_screen, m, p.c);
+    render_mesh(&game_screen, predio1, p.c);
+    render_mesh(&game_screen, predio2, p.c);
+    render_mesh(&game_screen, p.aviao, p.c);
     game_screen.draw_screen();
     game_screen.clear_screen();
     //p.loop();

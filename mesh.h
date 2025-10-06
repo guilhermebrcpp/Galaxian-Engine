@@ -12,7 +12,7 @@ public:
     vector3 scale;
 
     mesh(){
-        pos.set(0, 0, 7);//1.5708*2
+        pos.set(0, 0, 0);//1.5708*2
         rotation.set(0, 0, 0);
         scale.set(1, 1, 1);
     }

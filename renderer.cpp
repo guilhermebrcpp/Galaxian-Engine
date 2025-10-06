@@ -57,9 +57,9 @@ bool is_point_on_triangle(vector2 p, vector2 tri[], vector3 *weights){
     float area3 = triangle_area(tri[2], tri[0], p);
 
     float inv_area_sum = 1 / (area1 + area2 + area3);
-    float weightA = area1 * inv_area_sum;
-    float weightB = area2 * inv_area_sum;
-    float weightC = area3 * inv_area_sum;
+    float weightA = area2 * inv_area_sum;
+    float weightB = area3 * inv_area_sum;
+    float weightC = area1 * inv_area_sum;
     weights->set(weightA, weightB, weightC);
 
     vector2 v1 = tri[0];
@@ -87,7 +87,7 @@ bool is_point_on_triangle(vector2 p, vector2 tri[], vector3 *weights){
 
     float c = to_p.dot(v3);
 
-    return (a >= 0 && b >= 0 && c >= 0);
+    return (a >= 0 && b >= 0 && c >= 0) && tri_area > 0;
 }
 
 void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color, vector3 zvalues){

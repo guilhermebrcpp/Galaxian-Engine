@@ -14,6 +14,12 @@ public:
         this->z = z;
     }
 
+    void set(vector3 a){
+        this->x = a.x;
+        this->y = a.y;
+        this->z = a.z;
+    }
+
     void add(float x, float y, float z){
         this->x += x;
         this->y += y;
