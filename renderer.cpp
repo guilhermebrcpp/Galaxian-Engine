@@ -91,10 +91,10 @@ bool is_point_on_triangle(vector2 p, vector2 tri[], vector3 *weights){
 }
 
 void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color, vector3 zvalues){
-    int bounding_box_x_min = std::min(std::min(a.x, b.x), c.x);
-    int bounding_box_x_max = std::max(std::max(a.x, b.x), c.x);
-    int bounding_box_y_min = std::min(std::min(a.y, b.y), c.y);
-    int bounding_box_y_max = std::max(std::max(a.y, b.y), c.y);
+    int bounding_box_x_min = std::min(std::min(std::ceil(a.x), std::ceil(b.x)), std::ceil(c.x));
+    int bounding_box_x_max = std::max(std::max(std::ceil(a.x), std::ceil(b.x)), std::ceil(c.x));
+    int bounding_box_y_min = std::min(std::min(std::ceil(a.y), std::ceil(b.y)), std::ceil(c.y));
+    int bounding_box_y_max = std::max(std::max(std::ceil(a.y), std::ceil(b.y)), std::ceil(c.y));
 
     //make sure its not outside the screen
 
