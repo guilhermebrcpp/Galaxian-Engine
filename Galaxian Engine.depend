@@ -65,7 +65,7 @@
 	"screen.h"
 	"mesh.h"
 
-1759780478 c:\users\victor\desktop\codigos c++\galaxian-engine\player.h
+1772483502 c:\users\victor\desktop\codigos c++\galaxian-engine\player.h
 	<iostream>
 	<windows.h>
 	"vector.h"
@@ -83,16 +83,17 @@
 	"vector.h"
 	<windows.h>
 
-1759779034 c:\users\victor\desktop\codigos c++\galaxian-engine\mesh.h
+1772483984 c:\users\victor\desktop\codigos c++\galaxian-engine\mesh.h
 	<vector>
 	"vector.h"
 	<fstream>
+	"texture.h"
 
 1756932777 source:c:\users\victor\desktop\codigos c++\galaxian-engine\player.cpp
 
 1757355044 source:c:\users\victor\desktop\codigos c++\galaxian-engine\screen.cpp
 
-1769529103 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
+1772484477 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
 	<iostream>
 	"gameApp.h"
 	"player.h"
@@ -101,14 +102,15 @@
 	<windows.h>
 	"camera.h"
 
-1759351373 c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.h
+1772469522 c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.h
 	<vector>
 	"vector.h"
 	"screen.h"
 	"mesh.h"
 	"camera.h"
+	"texture.h"
 
-1769532495 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
+1772484026 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
 	<iostream>
 	<vector>
 	"vector.h"
@@ -116,6 +118,7 @@
 	"renderer.h"
 	<math.h>
 	"mesh.h"
+	"texture.h"
 
 1767382700 c:\users\victor\desktop\codigos c++\galaxian-engine\camera.h
 	"vector.h"
@@ -123,4 +126,6 @@
 1759507194 source:c:\users\victor\desktop\codigos c++\galaxian-engine\vector.cpp
 	"vector.h"
 	<math.h>
+
+1772406401 c:\users\victor\desktop\codigos c++\galaxian-engine\texture.h
 

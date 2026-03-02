@@ -17,8 +17,8 @@ public:
     mesh aviao;
 
     void start(){
-        pos.set(0, 0, 10);
-        rotation.set(0, 0, 0);
+        pos.set(-1.5, 0, 10);
+        rotation.set(0, 3.14, 0);
     }
 
     void input(){

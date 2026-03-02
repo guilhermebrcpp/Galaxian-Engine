@@ -5,6 +5,7 @@
 #include "renderer.h"
 #include <math.h>
 #include "mesh.h"
+#include "texture.h"
 
 vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rotation, vector3 scale){
     vector3 final_point = point;
@@ -90,7 +91,12 @@ bool is_point_on_triangle(vector2 p, vector2 tri[], vector3 *weights){
     return (a >= 0 && b >= 0 && c >= 0) && tri_area > 0;
 }
 
-void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color, vector3 zvalues){
+float range(float x1, float y1, float x2, float y2, float x){
+    return (y1-x1) * ((x-x2)/(y2-x2)) + x1;
+}
+
+
+void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1, vector2 tex_pos2, vector2 tex_pos3, char color, vector3 zvalues, texture *tex, bool has_texture){
     int bounding_box_x_min = std::min(std::min(std::ceil(a.x), std::ceil(b.x)), std::ceil(c.x));
     int bounding_box_x_max = std::max(std::max(std::ceil(a.x), std::ceil(b.x)), std::ceil(c.x));
     int bounding_box_y_min = std::min(std::min(std::ceil(a.y), std::ceil(b.y)), std::ceil(c.y));
@@ -98,10 +104,10 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color, vecto
 
     //make sure its not outside the screen
 
-    bounding_box_x_min = std::min(s->screen_width, std::max(0, bounding_box_x_min));
-    bounding_box_x_max = std::min(s->screen_width, std::max(0, bounding_box_x_max));
-    bounding_box_y_min = std::min(s->screen_height, std::max(0, bounding_box_y_min));
-    bounding_box_y_max = std::min(s->screen_height, std::max(0, bounding_box_y_max));
+    bounding_box_x_min = std::min(s->screen_width-1, std::max(0, bounding_box_x_min));
+    bounding_box_x_max = std::min(s->screen_width-1, std::max(0, bounding_box_x_max));
+    bounding_box_y_min = std::min(s->screen_height-1, std::max(0, bounding_box_y_min));
+    bounding_box_y_max = std::min(s->screen_height-1, std::max(0, bounding_box_y_max));
 
     vector2 tri[3] = {a, b, c};
 
@@ -111,16 +117,40 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, char color, vecto
             vector2 point;
             point.set(j, i);
             vector3 current_weight;
+
             if(is_point_on_triangle(point, tri, &current_weight)){
 
+                float invZ = current_weight.x * (1 / zvalues.x) +
+                current_weight.y * (1 / zvalues.y) +
+                current_weight.z * (1 / zvalues.z);
+
+                float depth = 1 / invZ;//current_weight.dot(zvalues);
+                if(depth > 1000)
+                    system("pause");
+                if(depth > s->depth_data[i][j]) continue;
+
+                //calculate the uv coordinate to get the current texture pixel
+                if(has_texture){
+                    vector2 temp_tex_coord; temp_tex_coord.set(0, 0);
+
+                    temp_tex_coord.x += (tex_pos1.x / zvalues.x) * current_weight.x;
+                    temp_tex_coord.y += (tex_pos1.y / zvalues.x) * current_weight.x;
+
+                    temp_tex_coord.x += (tex_pos2.x / zvalues.y) * current_weight.y;
+                    temp_tex_coord.y += (tex_pos2.y / zvalues.y) * current_weight.y;
+
+                    temp_tex_coord.x += (tex_pos3.x / zvalues.z) * current_weight.z;
+                    temp_tex_coord.y += (tex_pos3.y / zvalues.z) * current_weight.z;
+
+                    temp_tex_coord.x /= invZ;
+                    temp_tex_coord.y /= invZ;
+
+                    color = tex->data[floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y))][floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x))];
+                }
                 //float invZ = current_weight.x * (1.0f / zvalues.x) +
                 //current_weight.y * (1.0f / zvalues.y) +
                 //current_weight.z * (1.0f / zvalues.z);
 
-
-                float depth = current_weight.dot(zvalues);
-
-                if(depth > s->depth_data[i][j]) continue;
 
                 s->depth_data[i][j] = depth;
                 s->draw_pixel(j, i, color);
@@ -156,11 +186,8 @@ vector3 triangle_normal(vector3 a, vector3 b, vector3 c){
     return normal;
 }
 
-float range(float x1, float y1, float x2, float y2, float x){
-    return (y1-x1) * ((x-x2)/(y2-x2)) + x1;
-}
+void render_mesh(screen* s, mesh m, camera cam, texture *tex){
 
-void render_mesh(screen* s, mesh m, camera cam){
     std::vector<vector2> converted_points;
     std::vector<vector3> world_points;
     std::vector<float> zvalues_list;
@@ -182,7 +209,6 @@ void render_mesh(screen* s, mesh m, camera cam){
     //draw triangles:
 
     std::string colors = ".'`^\",:;Il!i~+-?][}{1)(|\\/tfXYUJCLQ0OZ#MW&8%B@$";
-    //"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'.";
     //"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'.";
     //".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
     int current_color = 0;
@@ -216,7 +242,20 @@ void render_mesh(screen* s, mesh m, camera cam){
         //color = colors[current_color];
         current_color++;
         if(current_color >= colors.length()-1) current_color = 0;
-        draw_triangle(s, converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1], color, zvalues);
+        /*std::cout<<"estou renderizando o triangulo:"<<i/3<<std::endl;
+        std::cout<<"triangulo:"<<converted_points[m.triangles[i+0]-1].y<<std::endl;
+        std::cout<<"triangulo:"<<converted_points[m.triangles[i+1]-1].y<<std::endl;
+        std::cout<<"triangulo:"<<converted_points[m.triangles[i+2]-1].y<<std::endl;
+        std::cout<<"tex:"<<m.vertex_texture[m.vertex_texture_indices[i+0]-1].x<<std::endl;
+        std::cout<<"tex:"<<m.vertex_texture[m.vertex_texture_indices[i+1]-1].x<<std::endl;
+        std::cout<<"tex:"<<m.vertex_texture[m.vertex_texture_indices[i+2]-1].x<<std::endl;*/
+        draw_triangle(s, converted_points[m.triangles[i+0]-1],
+                         converted_points[m.triangles[i+1]-1],
+                         converted_points[m.triangles[i+2]-1],
+                         m.vertex_texture[m.vertex_texture_indices[i+0]-1],
+                         m.vertex_texture[m.vertex_texture_indices[i+1]-1],
+                         m.vertex_texture[m.vertex_texture_indices[i+2]-1],
+                         color, zvalues, &m.mesh_texture, m.have_texture());
     }
     std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;
     //system("pause");
