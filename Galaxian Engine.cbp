@@ -36,6 +36,7 @@
 		<Unit filename="gameApp.cpp" />
 		<Unit filename="gameApp.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="material.h" />
 		<Unit filename="mesh.h" />
 		<Unit filename="player.cpp" />
 		<Unit filename="player.h" />

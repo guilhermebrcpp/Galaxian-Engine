@@ -125,8 +125,7 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                 current_weight.z * (1 / zvalues.z);
 
                 float depth = 1 / invZ;//current_weight.dot(zvalues);
-                if(depth > 1000)
-                    system("pause");
+
                 if(depth > s->depth_data[i][j]) continue;
 
                 //calculate the uv coordinate to get the current texture pixel
@@ -147,9 +146,7 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
 
                     color = tex->data[floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y))][floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x))];
                 }
-                //float invZ = current_weight.x * (1.0f / zvalues.x) +
-                //current_weight.y * (1.0f / zvalues.y) +
-                //current_weight.z * (1.0f / zvalues.z);
+
 
 
                 s->depth_data[i][j] = depth;
@@ -186,7 +183,7 @@ vector3 triangle_normal(vector3 a, vector3 b, vector3 c){
     return normal;
 }
 
-void render_mesh(screen* s, mesh m, camera cam, texture *tex){
+void render_mesh(screen* s, mesh m, camera cam){
 
     std::vector<vector2> converted_points;
     std::vector<vector3> world_points;
@@ -208,54 +205,64 @@ void render_mesh(screen* s, mesh m, camera cam, texture *tex){
 
     //draw triangles:
 
-    std::string colors = " .:-=+*#%@";//".'`^\",:;Il!i~+-?][}{1)(|\\/tfXYUJCLQ0OZ#MW&8%B@$";
-    //"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'.";
-    //".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
-    int current_color = 0;
-    for(int i = 0; i<m.triangles.size(); i+=3){
-        //check if the triangle is counter clockwise
-        if(!is_triangle_ccw(converted_points[m.triangles[i+0]-1], converted_points[m.triangles[i+1]-1], converted_points[m.triangles[i+2]-1]))
-            continue;
-        vector3 zvalues;
-        zvalues.set(zvalues_list[m.triangles[i+0]-1], zvalues_list[m.triangles[i+1]-1], zvalues_list[m.triangles[i+2]-1]);
-        //check if the z values are negative (behing camera)
-        float minzvaluerendered = 0.1;
-        if(zvalues.x <= minzvaluerendered || zvalues.y <= minzvaluerendered || zvalues.z <= minzvaluerendered)
-            continue;
-        //dot product with the normals
-        vector3 light_direction;
-        light_direction.set(1, 1, 0);
-        light_direction = light_direction.normalized();
-        //inverse rotating the light by the camera angle to fix the light angle
-        light_direction = rotated_by_y(light_direction, -cam.rotation.y);
-        light_direction = rotated_by_x(light_direction, -cam.rotation.x);
+    std::string colors = " .:-=+*#%@";
 
-        vector3 current_normal = triangle_normal(world_points[m.triangles[i+0]-1], world_points[m.triangles[i+1]-1], world_points[m.triangles[i+2]-1]);
-        float dot = current_normal.dot(light_direction);
+    for(int current_sub_mesh = 0; current_sub_mesh < m.triangles.size(); current_sub_mesh++){
+        std::cout<<"estou na:"<<current_sub_mesh<<" submesh"<<std::endl;
+        for(int i = 0; i < m.triangles[current_sub_mesh].size(); i++){
 
-        if(dot < -1 || dot > 1) continue;
-        if(dot < 0) dot = 0;
-        if(dot > 1) dot = 1;
-        float light_level = std::min(dot+0.23, 1.0);
+            int current_vertices[3] = {m.triangles[current_sub_mesh][i+0]-1, m.triangles[current_sub_mesh][i+1]-1, m.triangles[current_sub_mesh][i+2]-1};
 
-        char color = colors[int(range(0, colors.length()-1, 0, 1, light_level))];
-        //color = colors[current_color];
-        current_color++;
-        if(current_color >= colors.length()-1) current_color = 0;
-        /*std::cout<<"estou renderizando o triangulo:"<<i/3<<std::endl;
-        std::cout<<"triangulo:"<<converted_points[m.triangles[i+0]-1].y<<std::endl;
-        std::cout<<"triangulo:"<<converted_points[m.triangles[i+1]-1].y<<std::endl;
-        std::cout<<"triangulo:"<<converted_points[m.triangles[i+2]-1].y<<std::endl;
-        std::cout<<"tex:"<<m.vertex_texture[m.vertex_texture_indices[i+0]-1].x<<std::endl;
-        std::cout<<"tex:"<<m.vertex_texture[m.vertex_texture_indices[i+1]-1].x<<std::endl;
-        std::cout<<"tex:"<<m.vertex_texture[m.vertex_texture_indices[i+2]-1].x<<std::endl;*/
-        draw_triangle(s, converted_points[m.triangles[i+0]-1],
-                         converted_points[m.triangles[i+1]-1],
-                         converted_points[m.triangles[i+2]-1],
-                         m.vertex_texture[m.vertex_texture_indices[i+0]-1],
-                         m.vertex_texture[m.vertex_texture_indices[i+1]-1],
-                         m.vertex_texture[m.vertex_texture_indices[i+2]-1],
-                         color, zvalues, &m.mesh_texture, m.have_texture());
+            std::cout<<"current1:"<<current_vertices[0]<<"\n"<<"current2:"<<current_vertices[1]<<"current3:"<<current_vertices[2]<<std::endl;
+
+            //check if the triangle is counter clockwise
+            if(!is_triangle_ccw(converted_points[current_vertices[0]],
+                                converted_points[current_vertices[1]],
+                                converted_points[current_vertices[2]]))
+                continue;
+
+            vector3 zvalues;
+            zvalues.set(zvalues_list[current_vertices[0]], zvalues_list[current_vertices[1]], zvalues_list[current_vertices[2]]);
+            //check if the z values are negative (behing camera)
+            float minzvaluerendered = 0.1;
+            if(zvalues.x <= minzvaluerendered || zvalues.y <= minzvaluerendered || zvalues.z <= minzvaluerendered)
+                continue;
+
+            //dot product with the normals
+            vector3 light_direction;
+            light_direction.set(1, 1, 0);
+            light_direction = light_direction.normalized();
+
+            //inverse rotating the light by the camera angle to fix the light angle
+            light_direction = rotated_by_y(light_direction, -cam.rotation.y);
+            light_direction = rotated_by_x(light_direction, -cam.rotation.x);
+
+            vector3 current_normal = triangle_normal(world_points[current_vertices[0]], world_points[current_vertices[1]], world_points[current_vertices[2]]);
+            float dot = current_normal.dot(light_direction);
+
+            if(dot < -1 || dot > 1) continue;
+            if(dot < 0) dot = 0;
+            if(dot > 1) dot = 1;
+            float light_level = std::min(dot+0.23, 1.0);
+
+            char color = colors[int(range(0, colors.length()-1, 0, 1, light_level))];
+            /*
+            for(int y = 0; y < m.materials[m.get_current_material(current_sub_mesh)].albedo_texture.get_height(); y ++){
+                for(int x = 0; x < m.materials[m.get_current_material(current_sub_mesh)].albedo_texture.get_width(); x ++){
+                    std::cout<<m.materials[m.get_current_material(current_sub_mesh)].albedo_texture.data[y][x];
+                }
+                std::cout<<"\n";
+            }*/
+
+
+            draw_triangle(s, converted_points[current_vertices[0]],
+                             converted_points[current_vertices[1]],
+                             converted_points[current_vertices[2]],
+                             m.vertex_texture[m.vertex_texture_indices[i+0]-1],
+                             m.vertex_texture[m.vertex_texture_indices[i+1]-1],
+                             m.vertex_texture[m.vertex_texture_indices[i+2]-1],
+                             color, zvalues, &m.materials[m.get_current_material(current_sub_mesh)].albedo_texture, m.have_texture());
+        }
     }
     std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;
     //system("pause");
