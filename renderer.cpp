@@ -208,7 +208,7 @@ void render_mesh(screen* s, mesh m, camera cam, texture *tex){
 
     //draw triangles:
 
-    std::string colors = ".'`^\",:;Il!i~+-?][}{1)(|\\/tfXYUJCLQ0OZ#MW&8%B@$";
+    std::string colors = " .:-=+*#%@";//".'`^\",:;Il!i~+-?][}{1)(|\\/tfXYUJCLQ0OZ#MW&8%B@$";
     //"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'.";
     //".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
     int current_color = 0;
