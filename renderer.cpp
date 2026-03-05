@@ -144,6 +144,8 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                     temp_tex_coord.x /= invZ;
                     temp_tex_coord.y /= invZ;
 
+                    std::cout<<"\ny:"<<floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y))<<"\nx:"<<floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x))<<std::endl;
+
                     color = tex->data[floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y))][floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x))];
                 }
 
@@ -208,12 +210,13 @@ void render_mesh(screen* s, mesh m, camera cam){
     std::string colors = " .:-=+*#%@";
 
     for(int current_sub_mesh = 0; current_sub_mesh < m.triangles.size(); current_sub_mesh++){
-        std::cout<<"estou na:"<<current_sub_mesh<<" submesh"<<std::endl;
-        for(int i = 0; i < m.triangles[current_sub_mesh].size(); i++){
+        std::cout<<"\nsubmesh:"<<current_sub_mesh<<std::endl;
+        system("pause");
+        for(int i = 0; i < m.triangles[current_sub_mesh].size(); i+=3){
 
             int current_vertices[3] = {m.triangles[current_sub_mesh][i+0]-1, m.triangles[current_sub_mesh][i+1]-1, m.triangles[current_sub_mesh][i+2]-1};
 
-            std::cout<<"current1:"<<current_vertices[0]<<"\n"<<"current2:"<<current_vertices[1]<<"current3:"<<current_vertices[2]<<std::endl;
+            //std::cout<<"\nsubmesh:"<<current_sub_mesh<<"triangulo:"<<i<<"\ncurrent1:"<<current_vertices[0]<<"\n"<<"current2:"<<current_vertices[1]<<"\ncurrent3:"<<current_vertices[2]<<std::endl;
 
             //check if the triangle is counter clockwise
             if(!is_triangle_ccw(converted_points[current_vertices[0]],
@@ -254,13 +257,12 @@ void render_mesh(screen* s, mesh m, camera cam){
                 std::cout<<"\n";
             }*/
 
-
             draw_triangle(s, converted_points[current_vertices[0]],
                              converted_points[current_vertices[1]],
                              converted_points[current_vertices[2]],
-                             m.vertex_texture[m.vertex_texture_indices[i+0]-1],
-                             m.vertex_texture[m.vertex_texture_indices[i+1]-1],
-                             m.vertex_texture[m.vertex_texture_indices[i+2]-1],
+                             m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+0]-1],
+                             m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+1]-1],
+                             m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+2]-1],
                              color, zvalues, &m.materials[m.get_current_material(current_sub_mesh)].albedo_texture, m.have_texture());
         }
     }

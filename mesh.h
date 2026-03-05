@@ -11,7 +11,7 @@ public:
     std::vector <std::vector<int>> triangles;
     std::vector <std::string> materials_used_in_order;
     std::vector <vector2> vertex_texture;
-    std::vector <int> vertex_texture_indices;
+    std::vector <std::vector<int>> vertex_texture_indices;
     vector3 pos;
     vector3 rotation;
     vector3 scale;
@@ -58,6 +58,8 @@ public:
                         number += line[i];
                     else{
                         vertices.push_back(std::stof(number));
+                        if(vertices.size() != 0 && vertices.size()%3 == 0)
+                            break;
                         number = "";
                     }
                 }
@@ -92,10 +94,10 @@ public:
                         //get vertex texture position of a vertex
                         case 1:
                             if(vertex_count > 3){
-                                vertex_texture_indices.push_back(vertex_texture_indices[vertex_texture_indices.size()-3]);
-                                vertex_texture_indices.push_back(vertex_texture_indices[vertex_texture_indices.size()-2]);
+                                sub_texture_mesh.push_back(sub_texture_mesh[sub_texture_mesh.size()-3]);
+                                sub_texture_mesh.push_back(sub_texture_mesh[sub_texture_mesh.size()-2]);
                             }
-                            vertex_texture_indices.push_back(std::stoi(number));
+                            sub_texture_mesh.push_back(std::stoi(number));
                             break;
                         //get normal position
                         case 2:
@@ -128,6 +130,10 @@ public:
             else if(starts_with("usemtl ", line)){
                 if(sub_mesh.size() != 0)
                     triangles.push_back(sub_mesh);
+                if(sub_texture_mesh.size() != 0)
+                    vertex_texture_indices.push_back(sub_texture_mesh);
+
+                sub_texture_mesh.clear();
                 sub_mesh.clear();
                 std::string name;
                 for(int i = 7; i < line.length(); i++){
@@ -137,6 +143,7 @@ public:
             }
             //std::cout << "Read: " << line << std::endl;
         }
+        vertex_texture_indices.push_back(sub_texture_mesh);
         triangles.push_back(sub_mesh);
         inputFile.close();
 
@@ -144,8 +151,10 @@ public:
         std::cout<<"vertex quantity:"<<vertices.size()<<std::endl;
         std::cout<<"triangle submesh quantity:"<<triangles.size()<<std::endl;
         for(int i = 0; i < triangles.size(); i++){
-                std::cout<<"submesh "<<i<<" triangle quantity: "<<triangles[i].size()<<" dividle by 3: "<<float(triangles[i].size()/3)<<std::endl;
+            //std::cout<<materials[get_current_material(i)].name<<std::endl;
+            //std::cout<<"submesh "<<i<<" triangle quantity: "<<triangles[i].size()<<" dividle by 3: "<<float(triangles[i].size()/3)<<std::endl;
         }
+
         /*
         for(int i = 0; i < vertices.size(); i+=3){
             std::cout<<"posicao "<<(i+1)/3<<" valor:"<<vertices[i]<<","<<vertices[i+1]<<","<<vertices[i+2]<<std::endl;
@@ -155,13 +164,14 @@ public:
             std::cout<<"vertex: "<<i<<" valor x:"<<vertex_texture[i].x<<"  valor y:"<<vertex_texture[i].y<<std::endl;
         }*/
 
+        /*
         for(int i = 0; i < triangles.size(); i++){
             std::cout<<"submesh "<<i<<":\n";
             for(int j = 0; j < triangles[i].size(); j+=3){
                 std::cout<<"triangulo "<<(j+1)/3<<" valor:"<<triangles[i][j+0]<<","<<triangles[i][j+1]<<","<<triangles[i][j+2]<<std::endl;
             }
         system("pause");
-        }
+        }*/
         system("pause");
         system("cls");
     }
@@ -238,6 +248,14 @@ public:
 
         //load all textures for the submaterials
         for(int i = 0; i < materials.size(); i++){
+            if(materials[i].texture_file_name.length() == 0){
+                materials[i].albedo_texture.data.push_back("....");
+                materials[i].albedo_texture.data.push_back("....");
+                materials[i].albedo_texture.data.push_back("....");
+                materials[i].albedo_texture.data.push_back("....");
+                continue;
+            }
+
             materials[i].texture_file_name.replace(materials[i].texture_file_name.length()-3, 3, "txt");
             load_texture("textures\\" + materials[i].texture_file_name, &materials[i].albedo_texture);
         }

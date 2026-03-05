@@ -9,18 +9,18 @@
 using namespace std;
 
 player p;
-screen game_screen(280, 190);
+screen game_screen(280, 100);
 mesh modelo1;
 mesh modelo2;
 camera c;
 
 void start(){
-    modelo1.load_material("mtls/reiayanami.mtl");
-    modelo1.load_model("models/reiayanami.obj");
+    modelo1.load_material("mtls/Wii_Coconut_Mall.mtl");
+    modelo1.load_model("models/Wii_Coconut_Mall.obj");
     //modelo2.load_model("models/Mazda.obj");
     //modelo1.rotation.y = -1.57;
     //modelo1.rotation.z = 1.57;
-    modelo1.scale.set(10, 10, 10);
+    modelo1.scale.set(1, 1, 1);
     //modelo2.scale.set(0.01, 0.01, 0.01);
     p.start();
 

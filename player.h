@@ -12,8 +12,8 @@ public:
     vector3 pos;
     vector3 rotation;
     camera c;
-    float move_speed = 0.09;
-    float rotation_speed = 0.009;
+    float move_speed = 0.09*30;
+    float rotation_speed = 0.009*5;
     mesh aviao;
 
     void start(){
