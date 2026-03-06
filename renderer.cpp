@@ -144,9 +144,17 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                     temp_tex_coord.x /= invZ;
                     temp_tex_coord.y /= invZ;
 
-                    std::cout<<"\ny:"<<floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y))<<"\nx:"<<floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x))<<std::endl;
+                    float min_y_uv = std::min(0.0, double(temp_tex_coord.y));
+                    float max_y_uv = std::max(1.0, double(temp_tex_coord.y));
+                    float min_x_uv = std::min(0.0, double(temp_tex_coord.x));
+                    float max_x_uv = std::max(1.0, double(temp_tex_coord.x));
 
-                    color = tex->data[floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y))][floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x))];
+                    int final_texture_x = floor(range(0, tex->get_width()-1, min_x_uv, max_x_uv, temp_tex_coord.x));
+                    int final_texture_y = floor(range(0, tex->get_height()-1, max_y_uv, min_y_uv, temp_tex_coord.y));
+
+                    //std::cout<<"\ny:"<<final_texture_y<<"\nx:"<<final_texture_x<<std::endl;
+
+                    color = tex->data[final_texture_y][final_texture_x];
                 }
 
 
@@ -210,8 +218,10 @@ void render_mesh(screen* s, mesh m, camera cam){
     std::string colors = " .:-=+*#%@";
 
     for(int current_sub_mesh = 0; current_sub_mesh < m.triangles.size(); current_sub_mesh++){
+        /*
         std::cout<<"\nsubmesh:"<<current_sub_mesh<<std::endl;
         system("pause");
+        */
         for(int i = 0; i < m.triangles[current_sub_mesh].size(); i+=3){
 
             int current_vertices[3] = {m.triangles[current_sub_mesh][i+0]-1, m.triangles[current_sub_mesh][i+1]-1, m.triangles[current_sub_mesh][i+2]-1};

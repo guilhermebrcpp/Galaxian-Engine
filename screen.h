@@ -63,10 +63,8 @@ public:
         }*/
 
         for(int i = 0; i<screen_height; i++){
-            for(int j = 0; j<screen_width; j++){
-                screen_str += screen_data[i][j];
-            }
-            screen_str += '\n';
+            screen_str += screen_data[i] + '\n';
+            //screen_str += '\n';
         }
 
         std::cout<<screen_str;
