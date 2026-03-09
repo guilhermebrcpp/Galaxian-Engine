@@ -152,8 +152,24 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                     int final_texture_x = floor(range(0, tex->get_width()-1, min_x_uv, max_x_uv, temp_tex_coord.x));
                     int final_texture_y = floor(range(0, tex->get_height()-1, max_y_uv, min_y_uv, temp_tex_coord.y));
 
-                    //std::cout<<"\ny:"<<final_texture_y<<"\nx:"<<final_texture_x<<std::endl;
+                    std::cout<<"\ny:"<<final_texture_y<<"\nx:"<<final_texture_x<<std::endl;
 
+                    int tex_width = tex->get_width();
+                    int tex_height = tex->get_height();
+
+                    std::cout<<"\width:"<<tex_width<<"\height:"<<tex_height<<std::endl;
+
+                    int wraped_x = (std::max(0, final_texture_x/tex_width)) * tex_width;
+                    final_texture_x = (final_texture_x < 0) ? final_texture_x + wraped_x : final_texture_x - wraped_x;
+
+                    int wraped_y = (std::max(0, final_texture_y/tex_height)) * tex_height;
+                    final_texture_y = (final_texture_y < 0) ? final_texture_y + wraped_y : final_texture_y - wraped_y;
+
+                    if(wraped_x > 0 || wraped_y > 0){
+                        std::cout<<"\wray:"<<wraped_y<<"\nwrax:"<<wraped_x;
+                        std::cout<<"\ny:"<<final_texture_y<<"\nx:"<<final_texture_x<<std::endl;
+                        std::cout<<"_______________________________\n";
+                    }
                     color = tex->data[final_texture_y][final_texture_x];
                 }
 
@@ -218,15 +234,15 @@ void render_mesh(screen* s, mesh m, camera cam){
     std::string colors = " .:-=+*#%@";
 
     for(int current_sub_mesh = 0; current_sub_mesh < m.triangles.size(); current_sub_mesh++){
-        /*
-        std::cout<<"\nsubmesh:"<<current_sub_mesh<<std::endl;
-        system("pause");
-        */
+
+        //std::cout<<"\nsubmesh:"<<current_sub_mesh<<std::endl;
+        //system("pause");
+
         for(int i = 0; i < m.triangles[current_sub_mesh].size(); i+=3){
 
             int current_vertices[3] = {m.triangles[current_sub_mesh][i+0]-1, m.triangles[current_sub_mesh][i+1]-1, m.triangles[current_sub_mesh][i+2]-1};
 
-            //std::cout<<"\nsubmesh:"<<current_sub_mesh<<"triangulo:"<<i<<"\ncurrent1:"<<current_vertices[0]<<"\n"<<"current2:"<<current_vertices[1]<<"\ncurrent3:"<<current_vertices[2]<<std::endl;
+            //std::cout<<"\ntamanho:"<<m.triangles[current_sub_mesh].size()<<"\nsubmesh:"<<current_sub_mesh<<"\ntriangulo:"<<i<<"\ncurrent1:"<<current_vertices[0]<<"\n"<<"current2:"<<current_vertices[1]<<"\ncurrent3:"<<current_vertices[2]<<std::endl;
 
             //check if the triangle is counter clockwise
             if(!is_triangle_ccw(converted_points[current_vertices[0]],

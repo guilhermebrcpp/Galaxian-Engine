@@ -85,9 +85,15 @@ public:
                         //get vertex position
                         case 0:
                             if(vertex_count >= 3){
-                                sub_mesh.push_back(sub_mesh[triangles.size()-3]);
-                                sub_mesh.push_back(sub_mesh[triangles.size()-2]);
+                                std::cout<<"adicionando:"<<sub_mesh[sub_mesh.size()-3]<<"   tamamho atual:"<<sub_mesh.size()<<std::endl;
+
+                                sub_mesh.push_back(sub_mesh[sub_mesh.size()-3]);
+
+                                std::cout<<"adicionando:"<<sub_mesh[sub_mesh.size()-2]<<"   tamamho atual:"<<sub_mesh.size()<<std::endl;
+                                sub_mesh.push_back(sub_mesh[sub_mesh.size()-2]);
+                                std::cout<<"eu ovu me matar"<<std::endl;
                             }
+                            std::cout<<"adicionei meu cu aaaaaa"<<std::endl;
                             sub_mesh.push_back(std::stoi(number));
                             vertex_count++;
                             break;
@@ -128,13 +134,15 @@ public:
                 vertex_texture.push_back(new_vec2);
             }
             else if(starts_with("usemtl ", line)){
-                if(sub_mesh.size() != 0)
+                if(sub_mesh.size() != 0){
                     triangles.push_back(sub_mesh);
+                    sub_mesh.clear();
+                }
                 if(sub_texture_mesh.size() != 0)
                     vertex_texture_indices.push_back(sub_texture_mesh);
 
                 sub_texture_mesh.clear();
-                sub_mesh.clear();
+
                 std::string name;
                 for(int i = 7; i < line.length(); i++){
                     name += line[i];
@@ -151,8 +159,8 @@ public:
         std::cout<<"vertex quantity:"<<vertices.size()<<std::endl;
         std::cout<<"triangle submesh quantity:"<<triangles.size()<<std::endl;
         for(int i = 0; i < triangles.size(); i++){
-            //std::cout<<materials[get_current_material(i)].name<<std::endl;
-            //std::cout<<"submesh "<<i<<" triangle quantity: "<<triangles[i].size()<<" dividle by 3: "<<float(triangles[i].size()/3)<<std::endl;
+            std::cout<<materials[get_current_material(i)].name<<std::endl;
+            std::cout<<"submesh "<<i<<" triangle quantity: "<<triangles[i].size()<<" dividle by 3: "<<float(triangles[i].size()/3)<<std::endl;
         }
 
         /*
@@ -164,14 +172,14 @@ public:
             std::cout<<"vertex: "<<i<<" valor x:"<<vertex_texture[i].x<<"  valor y:"<<vertex_texture[i].y<<std::endl;
         }*/
 
-        /*
+
         for(int i = 0; i < triangles.size(); i++){
             std::cout<<"submesh "<<i<<":\n";
             for(int j = 0; j < triangles[i].size(); j+=3){
                 std::cout<<"triangulo "<<(j+1)/3<<" valor:"<<triangles[i][j+0]<<","<<triangles[i][j+1]<<","<<triangles[i][j+2]<<std::endl;
             }
-        system("pause");
-        }*/
+            system("pause");
+        }
         system("pause");
         system("cls");
     }
