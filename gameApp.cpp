@@ -15,11 +15,13 @@ mesh modelo2;
 camera c;
 
 void start(){
-    modelo1.load_material("mtls/plane text.mtl");
-    modelo1.load_model("models/plane text.obj");
+    modelo1.load_material("mtls/Wii_Coconut_Mall.mtl");
+    modelo1.load_model("models/Wii_Coconut_Mall.obj");
+    //Wii_Coconut_Mall
+    //plane text
     //modelo2.load_model("models/Mazda.obj");
-    modelo1.rotation.y = -1.57;
-    modelo1.rotation.z = 1.57;
+    //modelo1.rotation.y = -1.57;
+    //modelo1.rotation.z = 1.57;
     modelo1.scale.set(1, 1, 1);
     //modelo2.scale.set(0.01, 0.01, 0.01);
     p.start();

@@ -144,32 +144,23 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                     temp_tex_coord.x /= invZ;
                     temp_tex_coord.y /= invZ;
 
-                    float min_y_uv = std::min(0.0, double(temp_tex_coord.y));
-                    float max_y_uv = std::max(1.0, double(temp_tex_coord.y));
-                    float min_x_uv = std::min(0.0, double(temp_tex_coord.x));
-                    float max_x_uv = std::max(1.0, double(temp_tex_coord.x));
+                    //float min_y_uv = std::min(0.0, double(std::floor(temp_tex_coord.y)));
+                    //float max_y_uv = std::max(1.0, double(std::ceil(temp_tex_coord.y)));
+                    //float min_x_uv = std::min(0.0, double(std::floor(temp_tex_coord.x)));
+                    //float max_x_uv = std::max(1.0, double(std::ceil(temp_tex_coord.x)));
 
-                    int final_texture_x = floor(range(0, tex->get_width()-1, min_x_uv, max_x_uv, temp_tex_coord.x));
-                    int final_texture_y = floor(range(0, tex->get_height()-1, max_y_uv, min_y_uv, temp_tex_coord.y));
+                    temp_tex_coord.x -= std::floor(temp_tex_coord.x);
+                    temp_tex_coord.y -= std::floor(temp_tex_coord.y);
 
-                    std::cout<<"\ny:"<<final_texture_y<<"\nx:"<<final_texture_x<<std::endl;
+                    int final_texture_x = floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x));
+                    int final_texture_y = floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y));
 
-                    int tex_width = tex->get_width();
-                    int tex_height = tex->get_height();
+                    final_texture_x = std::min(final_texture_x, tex->get_width()-1);
+                    final_texture_y = std::min(final_texture_y, tex->get_height()-1);
 
-                    std::cout<<"\width:"<<tex_width<<"\height:"<<tex_height<<std::endl;
+                    final_texture_x = std::max(final_texture_x, 0);
+                    final_texture_y = std::max(final_texture_y, 0);
 
-                    int wraped_x = (std::max(0, final_texture_x/tex_width)) * tex_width;
-                    final_texture_x = (final_texture_x < 0) ? final_texture_x + wraped_x : final_texture_x - wraped_x;
-
-                    int wraped_y = (std::max(0, final_texture_y/tex_height)) * tex_height;
-                    final_texture_y = (final_texture_y < 0) ? final_texture_y + wraped_y : final_texture_y - wraped_y;
-
-                    if(wraped_x > 0 || wraped_y > 0){
-                        std::cout<<"\wray:"<<wraped_y<<"\nwrax:"<<wraped_x;
-                        std::cout<<"\ny:"<<final_texture_y<<"\nx:"<<final_texture_x<<std::endl;
-                        std::cout<<"_______________________________\n";
-                    }
                     color = tex->data[final_texture_y][final_texture_x];
                 }
 

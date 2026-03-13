@@ -85,15 +85,9 @@ public:
                         //get vertex position
                         case 0:
                             if(vertex_count >= 3){
-                                std::cout<<"adicionando:"<<sub_mesh[sub_mesh.size()-3]<<"   tamamho atual:"<<sub_mesh.size()<<std::endl;
-
                                 sub_mesh.push_back(sub_mesh[sub_mesh.size()-3]);
-
-                                std::cout<<"adicionando:"<<sub_mesh[sub_mesh.size()-2]<<"   tamamho atual:"<<sub_mesh.size()<<std::endl;
                                 sub_mesh.push_back(sub_mesh[sub_mesh.size()-2]);
-                                std::cout<<"eu ovu me matar"<<std::endl;
                             }
-                            std::cout<<"adicionei meu cu aaaaaa"<<std::endl;
                             sub_mesh.push_back(std::stoi(number));
                             vertex_count++;
                             break;
@@ -159,8 +153,6 @@ public:
         std::cout<<"vertex quantity:"<<vertices.size()<<std::endl;
         std::cout<<"triangle submesh quantity:"<<triangles.size()<<std::endl;
         for(int i = 0; i < triangles.size(); i++){
-            std::cout<<materials[get_current_material(i)].name<<std::endl;
-            std::cout<<"submesh "<<i<<" triangle quantity: "<<triangles[i].size()<<" dividle by 3: "<<float(triangles[i].size()/3)<<std::endl;
         }
 
         /*
@@ -172,7 +164,7 @@ public:
             std::cout<<"vertex: "<<i<<" valor x:"<<vertex_texture[i].x<<"  valor y:"<<vertex_texture[i].y<<std::endl;
         }*/
 
-
+        /*
         for(int i = 0; i < triangles.size(); i++){
             std::cout<<"submesh "<<i<<":\n";
             for(int j = 0; j < triangles[i].size(); j+=3){
@@ -182,6 +174,7 @@ public:
         }
         system("pause");
         system("cls");
+        */
     }
     void set_texture(texture tex){
         mesh_texture.push_back(tex);
