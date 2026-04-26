@@ -6,6 +6,7 @@
 #include <math.h>
 #include "mesh.h"
 #include "texture.h"
+#include "inputHandler.h"
 
 vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rotation, vector3 scale){
     vector3 final_point = point;
@@ -161,6 +162,9 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                     final_texture_x = std::max(final_texture_x, 0);
                     final_texture_y = std::max(final_texture_y, 0);
 
+                    //std::cout<<"final_texture X:"<<final_texture_x<<std::endl;
+                    //std::cout<<"final_texture Y:"<<final_texture_y<<std::endl;
+                    //system("pause");
                     color = tex->data[final_texture_y][final_texture_x];
                 }
 
@@ -200,26 +204,10 @@ vector3 triangle_normal(vector3 a, vector3 b, vector3 c){
     return normal;
 }
 
+int cu = 18;
+
+
 void render_mesh(screen* s, mesh m, camera cam){
-
-    std::vector<vector2> converted_points;
-    std::vector<vector3> world_points;
-    std::vector<float> zvalues_list;
-
-    for(int i = 0; i<m.vertices.size(); i += 3){
-        vector3 point;
-        point.set(m.vertices[i+0], m.vertices[i+1], m.vertices[i+2]);
-        point = local_to_world(point, m.pos, m.rotation, m.scale);
-        point = to_view_space(point, cam.pos, cam.rotation);
-
-        world_points.push_back(point);
-        zvalues_list.push_back(point.z);
-
-        vector2 new_point = world_to_screen(point, cam.fov, s->screen_width, s->screen_height);
-
-        converted_points.push_back(new_point);
-    }
-
     //draw triangles:
 
     std::string colors = " .:-=+*#%@";
@@ -229,20 +217,52 @@ void render_mesh(screen* s, mesh m, camera cam){
         //std::cout<<"\nsubmesh:"<<current_sub_mesh<<std::endl;
         //system("pause");
 
+        //if(current_sub_mesh != cu) continue;
         for(int i = 0; i < m.triangles[current_sub_mesh].size(); i+=3){
 
+            vector3 point1; point1.set(m.vertices[((m.triangles[current_sub_mesh][i+0]-1)*3)+0],
+                                       m.vertices[((m.triangles[current_sub_mesh][i+0]-1)*3)+1],
+                                       m.vertices[((m.triangles[current_sub_mesh][i+0]-1)*3)+2]);
+
+            vector3 point2; point2.set(m.vertices[((m.triangles[current_sub_mesh][i+1]-1)*3)+0],
+                                       m.vertices[((m.triangles[current_sub_mesh][i+1]-1)*3)+1],
+                                       m.vertices[((m.triangles[current_sub_mesh][i+1]-1)*3)+2]);
+
+            vector3 point3; point3.set(m.vertices[((m.triangles[current_sub_mesh][i+2]-1)*3)+0],
+                                       m.vertices[((m.triangles[current_sub_mesh][i+2]-1)*3)+1],
+                                       m.vertices[((m.triangles[current_sub_mesh][i+2]-1)*3)+2]);
+
+
+            vector3 world_points[3] = {
+                to_view_space(local_to_world(point1, m.pos, m.rotation, m.scale), cam.pos, cam.rotation),
+                to_view_space(local_to_world(point2, m.pos, m.rotation, m.scale), cam.pos, cam.rotation),
+                to_view_space(local_to_world(point3, m.pos, m.rotation, m.scale), cam.pos, cam.rotation)
+            };
+
+            vector2 converted_points[3] = {
+                world_to_screen(world_points[0], cam.fov, s->screen_width, s->screen_height),
+                world_to_screen(world_points[1], cam.fov, s->screen_width, s->screen_height),
+                world_to_screen(world_points[2], cam.fov, s->screen_width, s->screen_height)
+            };
+
+            /*
+            std::cout<<"ponto 1: x:"<<converted_points[0].x<<" y:"<<converted_points[0].y<<std::endl;
+            std::cout<<"ponto 2: x:"<<converted_points[1].x<<" y:"<<converted_points[1].y<<std::endl;
+            std::cout<<"ponto 3: x:"<<converted_points[2].x<<" y:"<<converted_points[2].y<<std::endl<<std::endl;
+            */
+            //system("pause");
             int current_vertices[3] = {m.triangles[current_sub_mesh][i+0]-1, m.triangles[current_sub_mesh][i+1]-1, m.triangles[current_sub_mesh][i+2]-1};
 
             //std::cout<<"\ntamanho:"<<m.triangles[current_sub_mesh].size()<<"\nsubmesh:"<<current_sub_mesh<<"\ntriangulo:"<<i<<"\ncurrent1:"<<current_vertices[0]<<"\n"<<"current2:"<<current_vertices[1]<<"\ncurrent3:"<<current_vertices[2]<<std::endl;
 
             //check if the triangle is counter clockwise
-            if(!is_triangle_ccw(converted_points[current_vertices[0]],
-                                converted_points[current_vertices[1]],
-                                converted_points[current_vertices[2]]))
+            if(!is_triangle_ccw(converted_points[0],
+                                converted_points[1],
+                                converted_points[2]))
                 continue;
 
             vector3 zvalues;
-            zvalues.set(zvalues_list[current_vertices[0]], zvalues_list[current_vertices[1]], zvalues_list[current_vertices[2]]);
+            zvalues.set(world_points[0].z, world_points[1].z, world_points[2].z);
             //check if the z values are negative (behing camera)
             float minzvaluerendered = 0.1;
             if(zvalues.x <= minzvaluerendered || zvalues.y <= minzvaluerendered || zvalues.z <= minzvaluerendered)
@@ -257,7 +277,7 @@ void render_mesh(screen* s, mesh m, camera cam){
             light_direction = rotated_by_y(light_direction, -cam.rotation.y);
             light_direction = rotated_by_x(light_direction, -cam.rotation.x);
 
-            vector3 current_normal = triangle_normal(world_points[current_vertices[0]], world_points[current_vertices[1]], world_points[current_vertices[2]]);
+            vector3 current_normal = triangle_normal(world_points[0], world_points[1], world_points[2]);
             float dot = current_normal.dot(light_direction);
 
             if(dot < -1 || dot > 1) continue;
@@ -274,9 +294,9 @@ void render_mesh(screen* s, mesh m, camera cam){
                 std::cout<<"\n";
             }*/
 
-            draw_triangle(s, converted_points[current_vertices[0]],
-                             converted_points[current_vertices[1]],
-                             converted_points[current_vertices[2]],
+            draw_triangle(s, converted_points[0],
+                             converted_points[1],
+                             converted_points[2],
                              m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+0]-1],
                              m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+1]-1],
                              m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+2]-1],

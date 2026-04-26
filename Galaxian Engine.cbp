@@ -35,6 +35,8 @@
 		<Unit filename="camera.h" />
 		<Unit filename="gameApp.cpp" />
 		<Unit filename="gameApp.h" />
+		<Unit filename="inputHandler.cpp" />
+		<Unit filename="inputHandler.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="material.h" />
 		<Unit filename="mesh.h" />
