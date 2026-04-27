@@ -2,10 +2,10 @@
 
 class texture{
 public:
-    std::vector<std::string> data;
+    std::string data;
 
-    int get_width(){ return data[0].size(); }
-    int get_height(){ return data.size(); }
+    int get_width(){ return width; }
+    int get_height(){ return height; }
     int set_width(int value){ width = value; }
     int set_height(int value){ height = value; }
 private:

@@ -176,13 +176,16 @@ public:
         system("cls");
         */
     }
+
     void set_texture(texture tex){
         mesh_texture.push_back(tex);
         has_texture = true;
     }
+
     bool have_texture(){
         return has_texture;
     }
+
     void load_texture(std::string file_path, texture *tex){
 
         std::ifstream inputFile(file_path);
@@ -199,16 +202,21 @@ public:
 
         int tex_y = 0;
         while (std::getline(inputFile, line)) {
-            tex->data.push_back(line);//[tex_y][tex_x] = line[tex_x];
+            tex->set_width(line.length());
+            tex->data += line;//[tex_y][tex_x] = line[tex_x];
             //tex_y++;
         }
+
         inputFile.close();
 
-        std::cout<<"width:"<<tex->data[0].length()<<std::endl;
-        std::cout<<"height:"<<tex->data.size()<<std::endl;
+        tex->set_height(tex->data.length()/tex->get_width());
+
+        std::cout<<"width:"<<tex->get_width()<<std::endl;
+        std::cout<<"height:"<<tex->get_height()<<std::endl;
         system("pause");
         has_texture = true;
     }
+
     void load_material(std::string file_path){
         std::ifstream inputFile(file_path);
 
@@ -250,18 +258,16 @@ public:
         //load all textures for the submaterials
         for(int i = 0; i < materials.size(); i++){
             if(materials[i].texture_file_name.length() == 0){
-                materials[i].albedo_texture.data.push_back("....");
-                materials[i].albedo_texture.data.push_back("....");
-                materials[i].albedo_texture.data.push_back("....");
-                materials[i].albedo_texture.data.push_back("....");
+                materials[i].albedo_texture.data += "....";
+                materials[i].albedo_texture.data += "....";
+                materials[i].albedo_texture.data += "....";
+                materials[i].albedo_texture.data += "....";
                 continue;
             }
 
             materials[i].texture_file_name.replace(materials[i].texture_file_name.length()-3, 3, "txt");
             load_texture("textures\\" + materials[i].texture_file_name, &materials[i].albedo_texture);
         }
-
-
     }
 
     int get_current_material(int sub_mesh_index){

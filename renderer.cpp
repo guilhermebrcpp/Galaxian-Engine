@@ -6,9 +6,8 @@
 #include <math.h>
 #include "mesh.h"
 #include "texture.h"
-#include "inputHandler.h"
 
-vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rotation, vector3 scale){
+inline vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rotation, vector3 scale){
     vector3 final_point = point;
     //rotation
     final_point = rotated_by_x(final_point, model_rotation.x);
@@ -26,7 +25,7 @@ vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rota
     return final_point;
 }
 
-vector3 to_view_space(vector3 point, vector3 camera_position, vector3 camera_rotation){
+inline vector3 to_view_space(vector3 point, vector3 camera_position, vector3 camera_rotation){
     //position
     point.sub(camera_position);
     vector3 final_point = point;
@@ -37,7 +36,7 @@ vector3 to_view_space(vector3 point, vector3 camera_position, vector3 camera_rot
     return final_point;
 }
 
-vector2 world_to_screen(vector3 point, float fov, int screen_width, int screen_height){
+inline vector2 world_to_screen(vector3 point, float fov, int screen_width, int screen_height){
     vector2 new_point;
 
     new_point.x = screen_width  / 2 + (point.x * fov) / point.z;
@@ -51,51 +50,24 @@ float triangle_area(vector2 a, vector2 b, vector2 c){
     return (abs((a.x*(b.y - c.y)) + (b.x*(c.y - a.y)) + (c.x*(a.y - b.y))))/2;
 }
 
-bool is_point_on_triangle(vector2 p, vector2 tri[], vector3 *weights){
-    float tri_area = triangle_area(tri[0], tri[1], tri[2]);
-
-    float area1 = triangle_area(tri[0], tri[1], p);
-    float area2 = triangle_area(tri[1], tri[2], p);
-    float area3 = triangle_area(tri[2], tri[0], p);
-
-    float inv_area_sum = 1 / (area1 + area2 + area3);
-    float weightA = area2 * inv_area_sum;
-    float weightB = area3 * inv_area_sum;
-    float weightC = area1 * inv_area_sum;
-    weights->set(weightA, weightB, weightC);
-
-    vector2 v1 = tri[0];
-    v1.sub(tri[1]);
-    v1.set(v1.y, -v1.x);
-    vector2 to_p;
-    to_p.set(p.x, p.y);
-    to_p.sub(tri[0]);
-
-    float a = to_p.dot(v1);
-
-    vector2 v2 = tri[1];
-    v2.sub(tri[2]);
-    v2.set(v2.y, -v2.x);
-    to_p.set(p.x, p.y);
-    to_p.sub(tri[1]);
-
-    float b = to_p.dot(v2);
-
-    vector2 v3 = tri[2];
-    v3.sub(tri[0]);
-    v3.set(v3.y, -v3.x);
-    to_p.set(p.x, p.y);
-    to_p.sub(tri[2]);
-
-    float c = to_p.dot(v3);
-
-    return (a >= 0 && b >= 0 && c >= 0) && tri_area > 0;
+bool is_point_on_triangle(float w0, float w1, float w2){
+    return (w0 >= 0 && w1 >= 0 && w2 >= 0);
 }
 
-float range(float x1, float y1, float x2, float y2, float x){
+inline float range(float x1, float y1, float x2, float y2, float x){
     return (y1-x1) * ((x-x2)/(y2-x2)) + x1;
 }
 
+float cross(vector2 p1, vector2 p2){
+	return (p1.x * p2.y - p2.x * p1.y);
+}
+
+inline float edge_function(vector2 p1, vector2 p2, vector2 po){
+	vector2 v1; v1.set(p2.x - p1.x, p2.y - p1.y);
+	vector2 v2; v2.set(po.x - p1.x, po.y - p1.y);
+
+	return cross(v1, v2);
+}
 
 void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1, vector2 tex_pos2, vector2 tex_pos3, char color, vector3 zvalues, texture *tex, bool has_texture){
     int bounding_box_x_min = std::min(std::min(std::ceil(a.x), std::ceil(b.x)), std::ceil(c.x));
@@ -112,35 +84,68 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
 
     vector2 tri[3] = {a, b, c};
 
+    float z1 = zvalues.x;
+    float z2 = zvalues.y;
+    float z3 = zvalues.z;
+
+    float inverse_z1 = 1 / z1;
+    float inverse_z2 = 1 / z2;
+    float inverse_z3 = 1 / z3;
+
+    vector2 point;
+    vector3 current_weight;
+
+    //pre calculate things hehehe ha
+    vector2 p; p.set(bounding_box_x_min, bounding_box_y_min);
+    vector2 p2; p2.set(p.x-1, p.y);
+    float dw0_x = edge_function(a, b, p) - edge_function(a, b, p2);
+    float dw1_x = edge_function(b, c, p) - edge_function(b, c, p2);
+    float dw2_x = edge_function(c, a, p) - edge_function(c, a, p2);
+
+    p2.set(p.x, p.y+1);
+    float dw0_y = edge_function(a, b, p2) - edge_function(a, b, p);
+    float dw1_y = edge_function(b, c, p2) - edge_function(b, c, p);
+    float dw2_y = edge_function(c, a, p2) - edge_function(c, a, p);
+
+    float w0_start_x = edge_function(a, b, p);
+    float w1_start_x = edge_function(b, c, p);
+    float w2_start_x = edge_function(c, a, p);
+
+    float current_triangle_area = edge_function(a, b, c);
+
     for(int i = bounding_box_y_min; i < bounding_box_y_max; i++){
+        float w0 = w0_start_x;
+        float w1 = w1_start_x;
+        float w2 = w2_start_x;
         for(int j = bounding_box_x_min; j < bounding_box_x_max; j++){
-            if(!s->is_on_screen(j, i)) continue;
-            vector2 point;
-            point.set(j, i);
-            vector3 current_weight;
+            if(is_point_on_triangle(w0, w1, w2)){
+                point.set(j, i);
 
-            if(is_point_on_triangle(point, tri, &current_weight)){
+                current_weight.x = edge_function(b, c, point) / current_triangle_area;
+                current_weight.y = edge_function(c, a, point) / current_triangle_area;
+                current_weight.z = edge_function(a, b, point) / current_triangle_area;
 
-                float invZ = current_weight.x * (1 / zvalues.x) +
-                current_weight.y * (1 / zvalues.y) +
-                current_weight.z * (1 / zvalues.z);
+
+                float invZ = current_weight.x * (inverse_z1) +
+                current_weight.y * (inverse_z2) +
+                current_weight.z * (inverse_z3);
 
                 float depth = 1 / invZ;//current_weight.dot(zvalues);
 
-                if(depth > s->depth_data[i][j]) continue;
+                if(depth > s->get_depth_data(i, j)) continue;
 
                 //calculate the uv coordinate to get the current texture pixel
                 if(has_texture){
                     vector2 temp_tex_coord; temp_tex_coord.set(0, 0);
 
-                    temp_tex_coord.x += (tex_pos1.x / zvalues.x) * current_weight.x;
-                    temp_tex_coord.y += (tex_pos1.y / zvalues.x) * current_weight.x;
+                    temp_tex_coord.x += (tex_pos1.x / z1) * current_weight.x;
+                    temp_tex_coord.y += (tex_pos1.y / z1) * current_weight.x;
 
-                    temp_tex_coord.x += (tex_pos2.x / zvalues.y) * current_weight.y;
-                    temp_tex_coord.y += (tex_pos2.y / zvalues.y) * current_weight.y;
+                    temp_tex_coord.x += (tex_pos2.x / z2) * current_weight.y;
+                    temp_tex_coord.y += (tex_pos2.y / z2) * current_weight.y;
 
-                    temp_tex_coord.x += (tex_pos3.x / zvalues.z) * current_weight.z;
-                    temp_tex_coord.y += (tex_pos3.y / zvalues.z) * current_weight.z;
+                    temp_tex_coord.x += (tex_pos3.x / z3) * current_weight.z;
+                    temp_tex_coord.y += (tex_pos3.y / z3) * current_weight.z;
 
                     temp_tex_coord.x /= invZ;
                     temp_tex_coord.y /= invZ;
@@ -153,8 +158,8 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                     temp_tex_coord.x -= std::floor(temp_tex_coord.x);
                     temp_tex_coord.y -= std::floor(temp_tex_coord.y);
 
-                    int final_texture_x = floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x));
-                    int final_texture_y = floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y));
+                    int final_texture_x = (tex->get_width()-1) * temp_tex_coord.x;        //floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x));
+                    int final_texture_y = (tex->get_height()-1) * (-temp_tex_coord.y + 1);//floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y));
 
                     final_texture_x = std::min(final_texture_x, tex->get_width()-1);
                     final_texture_y = std::min(final_texture_y, tex->get_height()-1);
@@ -162,18 +167,20 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                     final_texture_x = std::max(final_texture_x, 0);
                     final_texture_y = std::max(final_texture_y, 0);
 
-                    //std::cout<<"final_texture X:"<<final_texture_x<<std::endl;
-                    //std::cout<<"final_texture Y:"<<final_texture_y<<std::endl;
-                    //system("pause");
-                    color = tex->data[final_texture_y][final_texture_x];
+                    color = tex->data[tex->get_width() * final_texture_y + final_texture_x];//final_texture_y][final_texture_x];
                 }
 
-
-
-                s->depth_data[i][j] = depth;
+                s->set_depth_data(i, j, depth);
                 s->draw_pixel(j, i, color);
             }
+
+            w0 += dw0_x;
+            w1 += dw1_x;
+            w2 += dw2_x;
         }
+        w0_start_x += dw0_y;
+        w1_start_x += dw1_y;
+        w2_start_x += dw2_y;
     }
     //std::cout<<"depois de desenhar triangulo"<<std::endl;
 }
@@ -204,71 +211,49 @@ vector3 triangle_normal(vector3 a, vector3 b, vector3 c){
     return normal;
 }
 
-int cu = 18;
-
+typedef struct{
+    vector3 world_point;
+    vector2 converted_point;
+}vertex;
 
 void render_mesh(screen* s, mesh m, camera cam){
-    //draw triangles:
+    vertex vertex_data[m.vertices.size()/3];
+
+    for(int i = 0; i<m.vertices.size(); i += 3){
+        vector3 point;
+        point.set(m.vertices[i+0], m.vertices[i+1], m.vertices[i+2]);
+        point = local_to_world(point, m.pos, m.rotation, m.scale);
+        point = to_view_space(point, cam.pos, cam.rotation);
+
+        vertex_data[i/3].world_point = point;
+
+        vector2 new_point = world_to_screen(point, cam.fov, s->screen_width, s->screen_height);
+
+        vertex_data[i/3].converted_point = new_point;
+    }
 
     std::string colors = " .:-=+*#%@";
-
+    //draw triangles:
     for(int current_sub_mesh = 0; current_sub_mesh < m.triangles.size(); current_sub_mesh++){
-
-        //std::cout<<"\nsubmesh:"<<current_sub_mesh<<std::endl;
-        //system("pause");
-
-        //if(current_sub_mesh != cu) continue;
         for(int i = 0; i < m.triangles[current_sub_mesh].size(); i+=3){
 
-            vector3 point1; point1.set(m.vertices[((m.triangles[current_sub_mesh][i+0]-1)*3)+0],
-                                       m.vertices[((m.triangles[current_sub_mesh][i+0]-1)*3)+1],
-                                       m.vertices[((m.triangles[current_sub_mesh][i+0]-1)*3)+2]);
-
-            vector3 point2; point2.set(m.vertices[((m.triangles[current_sub_mesh][i+1]-1)*3)+0],
-                                       m.vertices[((m.triangles[current_sub_mesh][i+1]-1)*3)+1],
-                                       m.vertices[((m.triangles[current_sub_mesh][i+1]-1)*3)+2]);
-
-            vector3 point3; point3.set(m.vertices[((m.triangles[current_sub_mesh][i+2]-1)*3)+0],
-                                       m.vertices[((m.triangles[current_sub_mesh][i+2]-1)*3)+1],
-                                       m.vertices[((m.triangles[current_sub_mesh][i+2]-1)*3)+2]);
-
-
-            vector3 world_points[3] = {
-                to_view_space(local_to_world(point1, m.pos, m.rotation, m.scale), cam.pos, cam.rotation),
-                to_view_space(local_to_world(point2, m.pos, m.rotation, m.scale), cam.pos, cam.rotation),
-                to_view_space(local_to_world(point3, m.pos, m.rotation, m.scale), cam.pos, cam.rotation)
-            };
-
-            vector2 converted_points[3] = {
-                world_to_screen(world_points[0], cam.fov, s->screen_width, s->screen_height),
-                world_to_screen(world_points[1], cam.fov, s->screen_width, s->screen_height),
-                world_to_screen(world_points[2], cam.fov, s->screen_width, s->screen_height)
-            };
-
-            /*
-            std::cout<<"ponto 1: x:"<<converted_points[0].x<<" y:"<<converted_points[0].y<<std::endl;
-            std::cout<<"ponto 2: x:"<<converted_points[1].x<<" y:"<<converted_points[1].y<<std::endl;
-            std::cout<<"ponto 3: x:"<<converted_points[2].x<<" y:"<<converted_points[2].y<<std::endl<<std::endl;
-            */
-            //system("pause");
             int current_vertices[3] = {m.triangles[current_sub_mesh][i+0]-1, m.triangles[current_sub_mesh][i+1]-1, m.triangles[current_sub_mesh][i+2]-1};
 
-            //std::cout<<"\ntamanho:"<<m.triangles[current_sub_mesh].size()<<"\nsubmesh:"<<current_sub_mesh<<"\ntriangulo:"<<i<<"\ncurrent1:"<<current_vertices[0]<<"\n"<<"current2:"<<current_vertices[1]<<"\ncurrent3:"<<current_vertices[2]<<std::endl;
-
             //check if the triangle is counter clockwise
-            if(!is_triangle_ccw(converted_points[0],
-                                converted_points[1],
-                                converted_points[2]))
+            if(!is_triangle_ccw(vertex_data[current_vertices[0]].converted_point,
+                                vertex_data[current_vertices[1]].converted_point,
+                                vertex_data[current_vertices[2]].converted_point))
                 continue;
 
             vector3 zvalues;
-            zvalues.set(world_points[0].z, world_points[1].z, world_points[2].z);
+            zvalues.set(vertex_data[current_vertices[0]].world_point.z, vertex_data[current_vertices[1]].world_point.z, vertex_data[current_vertices[2]].world_point.z);
             //check if the z values are negative (behing camera)
             float minzvaluerendered = 0.1;
             if(zvalues.x <= minzvaluerendered || zvalues.y <= minzvaluerendered || zvalues.z <= minzvaluerendered)
                 continue;
 
             //dot product with the normals
+
             vector3 light_direction;
             light_direction.set(1, 1, 0);
             light_direction = light_direction.normalized();
@@ -277,32 +262,26 @@ void render_mesh(screen* s, mesh m, camera cam){
             light_direction = rotated_by_y(light_direction, -cam.rotation.y);
             light_direction = rotated_by_x(light_direction, -cam.rotation.x);
 
-            vector3 current_normal = triangle_normal(world_points[0], world_points[1], world_points[2]);
+            vector3 current_normal = triangle_normal(vertex_data[current_vertices[0]].world_point, vertex_data[current_vertices[1]].world_point, vertex_data[current_vertices[2]].world_point);
             float dot = current_normal.dot(light_direction);
 
             if(dot < -1 || dot > 1) continue;
             if(dot < 0) dot = 0;
             if(dot > 1) dot = 1;
+
             float light_level = std::min(dot+0.23, 1.0);
 
             char color = colors[int(range(0, colors.length()-1, 0, 1, light_level))];
-            /*
-            for(int y = 0; y < m.materials[m.get_current_material(current_sub_mesh)].albedo_texture.get_height(); y ++){
-                for(int x = 0; x < m.materials[m.get_current_material(current_sub_mesh)].albedo_texture.get_width(); x ++){
-                    std::cout<<m.materials[m.get_current_material(current_sub_mesh)].albedo_texture.data[y][x];
-                }
-                std::cout<<"\n";
-            }*/
 
-            draw_triangle(s, converted_points[0],
-                             converted_points[1],
-                             converted_points[2],
+            draw_triangle(s, vertex_data[current_vertices[0]].converted_point,
+                             vertex_data[current_vertices[1]].converted_point,
+                             vertex_data[current_vertices[2]].converted_point,
                              m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+0]-1],
                              m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+1]-1],
                              m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+2]-1],
                              color, zvalues, &m.materials[m.get_current_material(current_sub_mesh)].albedo_texture, m.have_texture());
         }
     }
-    std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;
+    //std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;
     //system("pause");
 }

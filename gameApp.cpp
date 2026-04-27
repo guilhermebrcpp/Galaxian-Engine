@@ -18,6 +18,9 @@ camera c;
 void start(){
     //todo:fazer o programa nao crashar se nao tiver um mtl
     //ver pq q ele nn le o modelo Eva00
+    //adicionar suporte a matrizes 4x4
+    //adicionar edge conventions seja la oq for isso
+
 
     modelo1.load_material("mtls/Wii_Coconut_Mall.mtl");
     modelo1.load_model("models/Wii_Coconut_Mall.obj");
