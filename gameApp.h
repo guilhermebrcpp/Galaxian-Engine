@@ -4,5 +4,5 @@
 #include "mesh.h"
 //#include "renderer.h"
 
-void main_loop();
+void main_loop(float delta);
 void start();

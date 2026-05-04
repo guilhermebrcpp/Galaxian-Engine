@@ -197,17 +197,21 @@ public:
             return;
         }
 
-
         std::string line;
 
         int tex_y = 0;
         while (std::getline(inputFile, line)) {
+
+            //std::cout<<"blablabla: "<<line<<std::endl;
+            tex->data += line;
             tex->set_width(line.length());
-            tex->data += line;//[tex_y][tex_x] = line[tex_x];
+
+            //[tex_y][tex_x] = line[tex_x];
             //tex_y++;
         }
 
         inputFile.close();
+
 
         tex->set_height(tex->data.length()/tex->get_width());
 
@@ -266,6 +270,7 @@ public:
             }
 
             materials[i].texture_file_name.replace(materials[i].texture_file_name.length()-3, 3, "txt");
+            std::cout<<"nome blabla:"<<materials[i].texture_file_name<<std::endl;
             load_texture("textures\\" + materials[i].texture_file_name, &materials[i].albedo_texture);
         }
     }

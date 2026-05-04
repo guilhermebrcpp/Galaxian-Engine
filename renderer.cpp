@@ -216,13 +216,13 @@ typedef struct{
     vector2 converted_point;
 }vertex;
 
-void render_mesh(screen* s, mesh m, camera cam){
-    vertex vertex_data[m.vertices.size()/3];
+void render_mesh(screen* s, mesh *m, camera cam){
+    vertex vertex_data[m->vertices.size()/3];
 
-    for(int i = 0; i<m.vertices.size(); i += 3){
+    for(int i = 0; i<m->vertices.size(); i += 3){
         vector3 point;
-        point.set(m.vertices[i+0], m.vertices[i+1], m.vertices[i+2]);
-        point = local_to_world(point, m.pos, m.rotation, m.scale);
+        point.set(m->vertices[i+0], m->vertices[i+1], m->vertices[i+2]);
+        point = local_to_world(point, m->pos, m->rotation, m->scale);
         point = to_view_space(point, cam.pos, cam.rotation);
 
         vertex_data[i/3].world_point = point;
@@ -234,10 +234,10 @@ void render_mesh(screen* s, mesh m, camera cam){
 
     std::string colors = " .:-=+*#%@";
     //draw triangles:
-    for(int current_sub_mesh = 0; current_sub_mesh < m.triangles.size(); current_sub_mesh++){
-        for(int i = 0; i < m.triangles[current_sub_mesh].size(); i+=3){
+    for(int current_sub_mesh = 0; current_sub_mesh < m->triangles.size(); current_sub_mesh++){
+        for(int i = 0; i < m->triangles[current_sub_mesh].size(); i+=3){
 
-            int current_vertices[3] = {m.triangles[current_sub_mesh][i+0]-1, m.triangles[current_sub_mesh][i+1]-1, m.triangles[current_sub_mesh][i+2]-1};
+            int current_vertices[3] = {m->triangles[current_sub_mesh][i+0]-1, m->triangles[current_sub_mesh][i+1]-1, m->triangles[current_sub_mesh][i+2]-1};
 
             //check if the triangle is counter clockwise
             if(!is_triangle_ccw(vertex_data[current_vertices[0]].converted_point,
@@ -276,10 +276,10 @@ void render_mesh(screen* s, mesh m, camera cam){
             draw_triangle(s, vertex_data[current_vertices[0]].converted_point,
                              vertex_data[current_vertices[1]].converted_point,
                              vertex_data[current_vertices[2]].converted_point,
-                             m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+0]-1],
-                             m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+1]-1],
-                             m.vertex_texture[m.vertex_texture_indices[current_sub_mesh][i+2]-1],
-                             color, zvalues, &m.materials[m.get_current_material(current_sub_mesh)].albedo_texture, m.have_texture());
+                             m->vertex_texture[m->vertex_texture_indices[current_sub_mesh][i+0]-1],
+                             m->vertex_texture[m->vertex_texture_indices[current_sub_mesh][i+1]-1],
+                             m->vertex_texture[m->vertex_texture_indices[current_sub_mesh][i+2]-1],
+                             color, zvalues, &m->materials[m->get_current_material(current_sub_mesh)].albedo_texture, m->have_texture());
         }
     }
     //std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;
