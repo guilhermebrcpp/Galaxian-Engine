@@ -22,7 +22,7 @@ void start(){
     //adicionar edge conventions seja la oq for isso
 
 
-    modelo1.load_material("mtls/Wii_Coconut_Mall2.mtl");
+    modelo1.load_material("mtls/Wii_Coconut_Mall.mtl");
     modelo1.load_model("models/Wii_Coconut_Mall.obj");
     //Wii_Coconut_Mall
     //plane text

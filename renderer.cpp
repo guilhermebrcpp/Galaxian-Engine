@@ -7,6 +7,9 @@
 #include "mesh.h"
 #include "texture.h"
 
+//for SIMD AVX2
+#include <immintrin.h>
+
 inline vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rotation, vector3 scale){
     vector3 final_point = point;
     //rotation
@@ -111,76 +114,230 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
     float w1_start_x = edge_function(b, c, p);
     float w2_start_x = edge_function(c, a, p);
 
+    //delta x positions
+    __m256 _dw0_x = _mm256_set1_ps(dw0_x*8);
+    __m256 _dw1_x = _mm256_set1_ps(dw1_x*8);
+    __m256 _dw2_x = _mm256_set1_ps(dw2_x*8);
+
+    //delta y positions
+    __m256 _dw0_y = _mm256_set1_ps(dw0_y);
+    __m256 _dw1_y = _mm256_set1_ps(dw1_y);
+    __m256 _dw2_y = _mm256_set1_ps(dw2_y);
+
+    __m256 _sequential = _mm256_setr_ps(0, 1, 2, 3, 4, 5, 6, 7);
+
+    //start vector changed by y
+    //calculate w0_start_x (w0_start_x = w0_start_x + dw0_x * n)
+    __m256 _dw_x_temp = _mm256_set1_ps(dw0_x);
+    __m256 _w0_start_x = _mm256_set1_ps(w0_start_x);
+    _w0_start_x = _mm256_fmadd_ps(_sequential, _dw_x_temp, _w0_start_x);
+
+    //calculate w1_start_x
+    _dw_x_temp = _mm256_set1_ps(dw1_x);
+    __m256 _w1_start_x = _mm256_set1_ps(w1_start_x);
+    _w1_start_x = _mm256_fmadd_ps(_sequential, _dw_x_temp, _w1_start_x);
+
+    //calculate w2_start_x
+    _dw_x_temp = _mm256_set1_ps(dw2_x);
+    __m256 _w2_start_x = _mm256_set1_ps(w2_start_x);
+    _w2_start_x = _mm256_fmadd_ps(_sequential, _dw_x_temp, _w2_start_x);
+
+    __m256 _zeroes = _mm256_set1_ps(0.0f);
+
     float current_triangle_area = edge_function(a, b, c);
 
     for(int i = bounding_box_y_min; i < bounding_box_y_max; i++){
-        float w0 = w0_start_x;
-        float w1 = w1_start_x;
-        float w2 = w2_start_x;
-        for(int j = bounding_box_x_min; j < bounding_box_x_max; j++){
-            if(is_point_on_triangle(w0, w1, w2)){
+        __m256 _w0 = _w0_start_x;
+        __m256 _w1 = _w1_start_x;
+        __m256 _w2 = _w2_start_x;
+        int j;
+        for(j = bounding_box_x_min; j <= bounding_box_x_max-8; j+=8){
+            __m256 _mask1 = _mm256_cmp_ps(_w0, _zeroes, _CMP_GE_OQ);
+        	__m256 _mask2 = _mm256_cmp_ps(_w1, _zeroes, _CMP_GE_OQ);
+        	__m256 _mask3 = _mm256_cmp_ps(_w2, _zeroes, _CMP_GE_OQ);
+
+            //using AND operation to join the bitmasks
+            __m256 _maskf = _mm256_and_ps(_mm256_and_ps(_mask1, _mask2), _mask3);
+
+            char bit_mask = _mm256_movemask_ps(_maskf);
+
+            /*
+            vector2 v1; v1.set(p2.x - p1.x, p2.y - p1.y);
+            vector2 v2; v2.set(po.x - p1.x, po.y - p1.y);
+            */
+            //return (p1.x * p2.y - p2.x * p1.y);
+            __m256 _triangle_area = _mm256_set1_ps(current_triangle_area);
+            __m256 _current_weight_x = _mm256_div_ps(_w1, _triangle_area);
+            __m256 _current_weight_y = _mm256_div_ps(_w2, _triangle_area);
+            __m256 _current_weight_z = _mm256_div_ps(_w0, _triangle_area);
+
+            __m256 _inverse_zn = _mm256_set1_ps(inverse_z1);
+            __m256 _invZ = _mm256_mul_ps(_current_weight_x, _inverse_zn);
+
+            _inverse_zn = _mm256_set1_ps(inverse_z2);
+            _invZ = _mm256_add_ps(_invZ, _mm256_mul_ps(_current_weight_y, _inverse_zn));
+
+            _inverse_zn = _mm256_set1_ps(inverse_z3);
+            _invZ = _mm256_add_ps(_invZ, _mm256_mul_ps(_current_weight_z, _inverse_zn));
+
+            __m256 _depth = _mm256_set1_ps(1.0f);
+            _depth = _mm256_div_ps(_depth, _invZ);
+
+            //************* calculate texture coordinates **************
+
+            //vector2 temp_tex_coord; temp_tex_coord.set(0, 0);
+            __m256 _temp_tex_coord_x = _mm256_set1_ps(0.0f);
+            __m256 _temp_tex_coord_y = _mm256_set1_ps(0.0f);
+
+            //**********calculate weights for z2
+            __m256 _tex_pos = _mm256_set1_ps(tex_pos1.x);
+            __m256 _z = _mm256_set1_ps(z1);
+            //(tex_pos1.x / z1) * current_weight.x;
+            _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_x, _mm256_div_ps(_tex_pos, _z)));
+
+            _tex_pos = _mm256_set1_ps(tex_pos1.y);
+            //(tex_pos1.y / z1) * current_weight.x;
+            _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_x, _mm256_div_ps(_tex_pos, _z)));
+
+            //**********calculate weights for z2
+            _tex_pos = _mm256_set1_ps(tex_pos2.x);
+            _z = _mm256_set1_ps(z2);
+            //(tex_pos1.x / z1) * current_weight.x;
+            _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_y, _mm256_div_ps(_tex_pos, _z)));
+
+            _tex_pos = _mm256_set1_ps(tex_pos2.y);
+            //(tex_pos1.y / z1) * current_weight.x;
+            _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_y, _mm256_div_ps(_tex_pos, _z)));
+
+
+            //**********calculate weights for z3
+            _tex_pos = _mm256_set1_ps(tex_pos3.x);
+            _z = _mm256_set1_ps(z3);
+            //(tex_pos1.x / z1) * current_weight.x;
+            _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_z, _mm256_div_ps(_tex_pos, _z)));
+
+            _tex_pos = _mm256_set1_ps(tex_pos3.y);
+            //(tex_pos1.y / z1) * current_weight.x;
+            _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_z, _mm256_div_ps(_tex_pos, _z)));
+
+            //divide by 1/depth
+            __m256 ones = _mm256_set1_ps(1.0f);
+
+            _temp_tex_coord_x = _mm256_div_ps(_temp_tex_coord_x, _mm256_div_ps(ones, _depth));
+            _temp_tex_coord_y = _mm256_div_ps(_temp_tex_coord_y, _mm256_div_ps(ones, _depth));
+
+            //temp_tex_coord.x -= std::floor(temp_tex_coord.x);
+            _temp_tex_coord_x = _mm256_floor_ps(_temp_tex_coord_x);
+            _temp_tex_coord_y = _mm256_floor_ps(_temp_tex_coord_y);
+
+            //set into integer registers
+            __m256i _final_tex_coord_x = _mm256_cvttps_epi32(_temp_tex_coord_x);
+            __m256i _final_tex_coord_y = _mm256_cvttps_epi32(_temp_tex_coord_y);
+
+            float depths[8];        _mm256_store_ps(depths, _depth);
+            int final_textures_x[8]; _mm256_store_si256((__m256i*)final_textures_x, _final_tex_coord_x);
+            int final_textures_y[8]; _mm256_store_si256((__m256i*)final_textures_y, _final_tex_coord_y);
+
+
+            //checking the bitmask to see which pixels are inside the triangle
+            for(int i2 = 0; i2 < 8; i2++){
+                if((bit_mask & (1<<i2)) > 0){
+                    //check depth data
+                    if(depths[i2] > s->get_depth_data(i, j+i2)) continue;
+
+                    //calculate the uv coordinate to get the current texture pixel
+                    if(has_texture){
+                        //printf("vou pintar heheh: x: %d, y: %d\n", final_textures_y[i2], final_textures_x[i2]);
+
+
+                        int final_texture_x0 = std::min(final_textures_x[i2], tex->get_width()-1);
+                        int final_texture_y0 = std::min(final_textures_y[i2], tex->get_height()-1);
+
+                        final_texture_x0 = std::max(final_texture_x0, 0);
+                        final_texture_y0 = std::max(final_texture_y0, 0);
+
+
+                        color = tex->data[tex->get_width() * final_texture_y0 + final_texture_x0];//final_texture_y][final_texture_x];
+                    }
+
+                    s->set_depth_data(i, j+i2, depths[i2]);
+                    s->draw_pixel(j+i2, i, color);
+                }
+            }
+            _w0 = _mm256_add_ps(_w0, _dw0_x);
+            _w1 = _mm256_add_ps(_w1, _dw1_x);
+            _w2 = _mm256_add_ps(_w2, _dw2_x);
+        }
+
+        float new_iw0 = w0_start_x + (dw0_y * (i - bounding_box_y_min));
+        float new_iw1 = w1_start_x + (dw1_y * (i - bounding_box_y_min));
+        float new_iw2 = w2_start_x + (dw2_y * (i - bounding_box_y_min));
+
+        float new_w0 = new_iw0 + (dw0_x * (j - bounding_box_x_min));
+        float new_w1 = new_iw1 + (dw1_x * (j - bounding_box_x_min));
+        float new_w2 = new_iw2 + (dw2_x * (j - bounding_box_x_min));
+
+        for(; j < bounding_box_x_max; j++){
+            //printf("sobrou!!\n");
+            if(new_w0 >= 0 && new_w1 >= 0 && new_w2 >= 0){
                 point.set(j, i);
 
-                current_weight.x = edge_function(b, c, point) / current_triangle_area;
-                current_weight.y = edge_function(c, a, point) / current_triangle_area;
-                current_weight.z = edge_function(a, b, point) / current_triangle_area;
+                    current_weight.x = edge_function(b, c, point) / current_triangle_area;
+                    current_weight.y = edge_function(c, a, point) / current_triangle_area;
+                    current_weight.z = edge_function(a, b, point) / current_triangle_area;
 
 
-                float invZ = current_weight.x * (inverse_z1) +
-                current_weight.y * (inverse_z2) +
-                current_weight.z * (inverse_z3);
+                    float invZ = current_weight.x * (inverse_z1) +
+                    current_weight.y * (inverse_z2) +
+                    current_weight.z * (inverse_z3);
 
-                float depth = 1 / invZ;//current_weight.dot(zvalues);
+                    float depth = 1 / invZ;//current_weight.dot(zvalues);
 
-                if(depth > s->get_depth_data(i, j)) continue;
+                    if(depth > s->get_depth_data(i, j)) continue;
 
-                //calculate the uv coordinate to get the current texture pixel
-                if(has_texture){
-                    vector2 temp_tex_coord; temp_tex_coord.set(0, 0);
+                    //calculate the uv coordinate to get the current texture pixel
+                    if(has_texture){
+                        vector2 temp_tex_coord; temp_tex_coord.set(0, 0);
 
-                    temp_tex_coord.x += (tex_pos1.x / z1) * current_weight.x;
-                    temp_tex_coord.y += (tex_pos1.y / z1) * current_weight.x;
+                        temp_tex_coord.x += (tex_pos1.x / z1) * current_weight.x;
+                        temp_tex_coord.y += (tex_pos1.y / z1) * current_weight.x;
 
-                    temp_tex_coord.x += (tex_pos2.x / z2) * current_weight.y;
-                    temp_tex_coord.y += (tex_pos2.y / z2) * current_weight.y;
+                        temp_tex_coord.x += (tex_pos2.x / z2) * current_weight.y;
+                        temp_tex_coord.y += (tex_pos2.y / z2) * current_weight.y;
 
-                    temp_tex_coord.x += (tex_pos3.x / z3) * current_weight.z;
-                    temp_tex_coord.y += (tex_pos3.y / z3) * current_weight.z;
+                        temp_tex_coord.x += (tex_pos3.x / z3) * current_weight.z;
+                        temp_tex_coord.y += (tex_pos3.y / z3) * current_weight.z;
 
-                    temp_tex_coord.x /= invZ;
-                    temp_tex_coord.y /= invZ;
+                        temp_tex_coord.x /= invZ;
+                        temp_tex_coord.y /= invZ;
 
-                    //float min_y_uv = std::min(0.0, double(std::floor(temp_tex_coord.y)));
-                    //float max_y_uv = std::max(1.0, double(std::ceil(temp_tex_coord.y)));
-                    //float min_x_uv = std::min(0.0, double(std::floor(temp_tex_coord.x)));
-                    //float max_x_uv = std::max(1.0, double(std::ceil(temp_tex_coord.x)));
+                        temp_tex_coord.x -= std::floor(temp_tex_coord.x);
+                        temp_tex_coord.y -= std::floor(temp_tex_coord.y);
 
-                    temp_tex_coord.x -= std::floor(temp_tex_coord.x);
-                    temp_tex_coord.y -= std::floor(temp_tex_coord.y);
+                        int final_texture_x = (tex->get_width()-1) * temp_tex_coord.x;
+                        int final_texture_y = (tex->get_height()-1) * (-temp_tex_coord.y + 1);
 
-                    int final_texture_x = (tex->get_width()-1) * temp_tex_coord.x;        //floor(range(0, tex->get_width()-1, 0, 1, temp_tex_coord.x));
-                    int final_texture_y = (tex->get_height()-1) * (-temp_tex_coord.y + 1);//floor(range(0, tex->get_height()-1, 1, 0, temp_tex_coord.y));
+                        final_texture_x = std::min(final_texture_x, tex->get_width()-1);
+                        final_texture_y = std::min(final_texture_y, tex->get_height()-1);
 
-                    final_texture_x = std::min(final_texture_x, tex->get_width()-1);
-                    final_texture_y = std::min(final_texture_y, tex->get_height()-1);
+                        final_texture_x = std::max(final_texture_x, 0);
+                        final_texture_y = std::max(final_texture_y, 0);
 
-                    final_texture_x = std::max(final_texture_x, 0);
-                    final_texture_y = std::max(final_texture_y, 0);
+                        color = tex->data[tex->get_width() * final_texture_y + final_texture_x];//final_texture_y][final_texture_x];
+                    }
 
-                    color = tex->data[tex->get_width() * final_texture_y + final_texture_x];//final_texture_y][final_texture_x];
-                }
-
-                s->set_depth_data(i, j, depth);
-                s->draw_pixel(j, i, color);
+                    s->set_depth_data(i, j, depth);
+                    s->draw_pixel(j, i, color);
             }
 
-            w0 += dw0_x;
-            w1 += dw1_x;
-            w2 += dw2_x;
+            new_w0 += dw0_x;
+            new_w1 += dw1_x;
+            new_w2 += dw2_x;
         }
-        w0_start_x += dw0_y;
-        w1_start_x += dw1_y;
-        w2_start_x += dw2_y;
+
+        _w0_start_x = _mm256_add_ps(_w0_start_x, _dw0_y);
+        _w1_start_x = _mm256_add_ps(_w1_start_x, _dw1_y);
+        _w2_start_x = _mm256_add_ps(_w2_start_x, _dw2_y);
     }
     //std::cout<<"depois de desenhar triangulo"<<std::endl;
 }

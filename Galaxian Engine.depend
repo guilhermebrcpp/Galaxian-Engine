@@ -95,7 +95,7 @@
 
 1777315175 source:c:\users\victor\desktop\codigos c++\galaxian-engine\screen.cpp
 
-1777841657 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
+1777927523 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
 	<iostream>
 	"gameApp.h"
 	"player.h"
@@ -113,7 +113,7 @@
 	"camera.h"
 	"texture.h"
 
-1777841436 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
+1777927613 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
 	<iostream>
 	<vector>
 	"vector.h"
@@ -122,6 +122,7 @@
 	<math.h>
 	"mesh.h"
 	"texture.h"
+	<immintrin.h>
 
 1777315175 c:\users\victor\desktop\codigos c++\galaxian-engine\camera.h
 	"vector.h"
