@@ -9,6 +9,7 @@ public:
     std::string screen_data;
     int screen_width;
     int screen_height;
+    //this should be private but i need it public to easier access and performance reasons
     std::vector<float> depth_data;
 
     screen(int screen_width, int screen_height){

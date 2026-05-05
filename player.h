@@ -12,7 +12,7 @@ public:
     vector3 pos;
     vector3 rotation;
     camera c;
-    float move_speed = 500;
+    float move_speed = 100;
     float rotation_speed = 1;
 
     void start(){

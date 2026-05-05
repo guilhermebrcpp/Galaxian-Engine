@@ -10,7 +10,7 @@
 using namespace std;
 
 player p;
-screen game_screen(280, 100);
+screen game_screen(200, 100);
 mesh modelo1;
 mesh modelo2;
 camera c;
@@ -20,16 +20,18 @@ void start(){
     //ver pq q ele nn le o modelo Eva00
     //adicionar suporte a matrizes 4x4
     //adicionar edge conventions seja la oq for isso
+    //ver pq q o parser ta uma merda (// //)
 
 
-    modelo1.load_material("mtls/Wii_Coconut_Mall.mtl");
-    modelo1.load_model("models/Wii_Coconut_Mall.obj");
-    //Wii_Coconut_Mall
+    modelo1.load_material("mtls/model.mtl");
+    modelo1.load_model("models/model.obj");
+    //SkecthFab2
+    //SkecthFab2
     //plane text
     //modelo2.load_model("models/Mazda.obj");
     //modelo1.rotation.y = -1.57;
     //modelo1.rotation.z = 1.57;
-    modelo1.scale.set(1, 1, 1);
+    modelo1.scale.set(100, 100, 100);
     //modelo2.scale.set(0.01, 0.01, 0.01);
     p.start();
 

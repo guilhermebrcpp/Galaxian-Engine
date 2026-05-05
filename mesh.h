@@ -149,32 +149,40 @@ public:
         triangles.push_back(sub_mesh);
         inputFile.close();
 
+        int triangle_quantity = 0;
+        for(int i = 0; i < triangles.size(); i++){
+            triangle_quantity += triangles[i].size()/3;
+        }
         std::cout<<"texture vertex quantity:"<<vertex_texture.size()<<std::endl;
         std::cout<<"vertex quantity:"<<vertices.size()<<std::endl;
         std::cout<<"triangle submesh quantity:"<<triangles.size()<<std::endl;
-        for(int i = 0; i < triangles.size(); i++){
-        }
-
-        /*
-        for(int i = 0; i < vertices.size(); i+=3){
-            std::cout<<"posicao "<<(i+1)/3<<" valor:"<<vertices[i]<<","<<vertices[i+1]<<","<<vertices[i+2]<<std::endl;
-        }
-
-        for(int i = 0; i < vertex_texture.size(); i+=1){
-            std::cout<<"vertex: "<<i<<" valor x:"<<vertex_texture[i].x<<"  valor y:"<<vertex_texture[i].y<<std::endl;
-        }*/
-
-        /*
-        for(int i = 0; i < triangles.size(); i++){
-            std::cout<<"submesh "<<i<<":\n";
-            for(int j = 0; j < triangles[i].size(); j+=3){
-                std::cout<<"triangulo "<<(j+1)/3<<" valor:"<<triangles[i][j+0]<<","<<triangles[i][j+1]<<","<<triangles[i][j+2]<<std::endl;
-            }
-            system("pause");
-        }
+        std::cout<<"triangle quantity:"<<triangle_quantity<<std::endl;
         system("pause");
-        system("cls");
-        */
+
+        for(int i = 0; i < triangles.size(); i++){
+        }
+
+
+        for(int i = 0; i < vertices.size(); i+=3){
+            //std::cout<<"posicao "<<(i+1)/3<<" valor:"<<vertices[i]<<","<<vertices[i+1]<<","<<vertices[i+2]<<std::endl;
+        }
+
+        //for(int i = 0; i < vertex_texture.size(); i+=1){
+        //    std::cout<<"vertex: "<<i<<" valor x:"<<vertex_texture[i].x<<"  valor y:"<<vertex_texture[i].y<<std::endl;
+        //}
+
+
+        /*for(int i = 0; i < triangles.size(); i++){
+            std::cout<<"submesh "<<i<<":\n";
+            for(int j = 70329*50; j < triangles[i].size(); j+=3){
+                std::cout<<"triangulo "<<(j+1)/3<<" valor:"<<triangles[i][j+0]<<","<<triangles[i][j+1]<<","<<triangles[i][j+2]<<std::endl;
+                printf("vertice1: %f, vertice2: %f, vertice3: %f\n", vertices[triangles[i][j+0]], vertices[triangles[i][j+1]], vertices[triangles[i][j+2]]);
+            }
+            //system("pause");
+        }*/
+        //system("pause");
+        //system("cls");
+
     }
 
     void set_texture(texture tex){

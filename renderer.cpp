@@ -7,6 +7,8 @@
 #include "mesh.h"
 #include "texture.h"
 
+#include <chrono>
+
 //for SIMD AVX2
 #include <immintrin.h>
 
@@ -146,26 +148,33 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
 
     float current_triangle_area = edge_function(a, b, c);
 
+
+    __m256 _minus_one = _mm256_set1_ps(-1.0f);
+    __m256 _one = _mm256_set1_ps(1.0f);
+
     for(int i = bounding_box_y_min; i < bounding_box_y_max; i++){
         __m256 _w0 = _w0_start_x;
         __m256 _w1 = _w1_start_x;
         __m256 _w2 = _w2_start_x;
         int j;
         for(j = bounding_box_x_min; j <= bounding_box_x_max-8; j+=8){
+            // w0 >= 0, w1 >= 0, w2 >= 0
             __m256 _mask1 = _mm256_cmp_ps(_w0, _zeroes, _CMP_GE_OQ);
         	__m256 _mask2 = _mm256_cmp_ps(_w1, _zeroes, _CMP_GE_OQ);
         	__m256 _mask3 = _mm256_cmp_ps(_w2, _zeroes, _CMP_GE_OQ);
 
             //using AND operation to join the bitmasks
             __m256 _maskf = _mm256_and_ps(_mm256_and_ps(_mask1, _mask2), _mask3);
-
             char bit_mask = _mm256_movemask_ps(_maskf);
 
-            /*
-            vector2 v1; v1.set(p2.x - p1.x, p2.y - p1.y);
-            vector2 v2; v2.set(po.x - p1.x, po.y - p1.y);
-            */
-            //return (p1.x * p2.y - p2.x * p1.y);
+            if(bit_mask == 0){
+                _w0 = _mm256_add_ps(_w0, _dw0_x);
+                _w1 = _mm256_add_ps(_w1, _dw1_x);
+                _w2 = _mm256_add_ps(_w2, _dw2_x);
+                continue;
+            }
+
+            //***************** calculate Z of the current pixel ****************
             __m256 _triangle_area = _mm256_set1_ps(current_triangle_area);
             __m256 _current_weight_x = _mm256_div_ps(_w1, _triangle_area);
             __m256 _current_weight_y = _mm256_div_ps(_w2, _triangle_area);
@@ -180,64 +189,77 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
             _inverse_zn = _mm256_set1_ps(inverse_z3);
             _invZ = _mm256_add_ps(_invZ, _mm256_mul_ps(_current_weight_z, _inverse_zn));
 
-            __m256 _depth = _mm256_set1_ps(1.0f);
-            _depth = _mm256_div_ps(_depth, _invZ);
+            __m256 _depth;// = _mm256_set1_ps(1.0f);
+            _depth = _mm256_rcp_ps(_invZ);//_mm256_div_ps(_depth, _invZ);
 
             //************* calculate texture coordinates **************
+            int final_textures_x[8];
+            int final_textures_y[8];
+            if(has_texture == true){
+                __m256 _temp_tex_coord_x = _mm256_set1_ps(0.0f);
+                __m256 _temp_tex_coord_y = _mm256_set1_ps(0.0f);
 
-            //vector2 temp_tex_coord; temp_tex_coord.set(0, 0);
-            __m256 _temp_tex_coord_x = _mm256_set1_ps(0.0f);
-            __m256 _temp_tex_coord_y = _mm256_set1_ps(0.0f);
+                //**********calculate weights for z1
+                //(tex_pos1.x / z1) * current_weight.x;
+                //(tex_pos1.y / z1) * current_weight.x;
+                __m256 _tex_pos = _mm256_set1_ps(tex_pos1.x);
+                __m256 _z = _mm256_set1_ps(z1);
+                _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_x, _mm256_div_ps(_tex_pos, _z)));
 
-            //**********calculate weights for z2
-            __m256 _tex_pos = _mm256_set1_ps(tex_pos1.x);
-            __m256 _z = _mm256_set1_ps(z1);
-            //(tex_pos1.x / z1) * current_weight.x;
-            _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_x, _mm256_div_ps(_tex_pos, _z)));
+                _tex_pos = _mm256_set1_ps(tex_pos1.y);
+                _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_x, _mm256_div_ps(_tex_pos, _z)));
 
-            _tex_pos = _mm256_set1_ps(tex_pos1.y);
-            //(tex_pos1.y / z1) * current_weight.x;
-            _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_x, _mm256_div_ps(_tex_pos, _z)));
+                //**********calculate weights for z2
+                //(tex_pos2.x / z2) * current_weight.y;
+                //(tex_pos2.y / z2) * current_weight.y;
+                _tex_pos = _mm256_set1_ps(tex_pos2.x);
+                _z = _mm256_set1_ps(z2);
+                _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_y, _mm256_div_ps(_tex_pos, _z)));
 
-            //**********calculate weights for z2
-            _tex_pos = _mm256_set1_ps(tex_pos2.x);
-            _z = _mm256_set1_ps(z2);
-            //(tex_pos1.x / z1) * current_weight.x;
-            _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_y, _mm256_div_ps(_tex_pos, _z)));
-
-            _tex_pos = _mm256_set1_ps(tex_pos2.y);
-            //(tex_pos1.y / z1) * current_weight.x;
-            _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_y, _mm256_div_ps(_tex_pos, _z)));
+                _tex_pos = _mm256_set1_ps(tex_pos2.y);
+                _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_y, _mm256_div_ps(_tex_pos, _z)));
 
 
-            //**********calculate weights for z3
-            _tex_pos = _mm256_set1_ps(tex_pos3.x);
-            _z = _mm256_set1_ps(z3);
-            //(tex_pos1.x / z1) * current_weight.x;
-            _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_z, _mm256_div_ps(_tex_pos, _z)));
+                //**********calculate weights for z3
+                //(tex_pos3.x / z3) * current_weight.z;
+                //(tex_pos3.y / z3) * current_weight.z;
+                _tex_pos = _mm256_set1_ps(tex_pos3.x);
+                _z = _mm256_set1_ps(z3);
+                _temp_tex_coord_x = _mm256_add_ps(_temp_tex_coord_x, _mm256_mul_ps(_current_weight_z, _mm256_div_ps(_tex_pos, _z)));
 
-            _tex_pos = _mm256_set1_ps(tex_pos3.y);
-            //(tex_pos1.y / z1) * current_weight.x;
-            _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_z, _mm256_div_ps(_tex_pos, _z)));
+                _tex_pos = _mm256_set1_ps(tex_pos3.y);
+                _temp_tex_coord_y = _mm256_add_ps(_temp_tex_coord_y, _mm256_mul_ps(_current_weight_z, _mm256_div_ps(_tex_pos, _z)));
 
-            //divide by 1/depth
-            __m256 ones = _mm256_set1_ps(1.0f);
+                //divide by 1/depth
+                //__m256 ones = _mm256_set1_ps(1.0f);
 
-            _temp_tex_coord_x = _mm256_div_ps(_temp_tex_coord_x, _mm256_div_ps(ones, _depth));
-            _temp_tex_coord_y = _mm256_div_ps(_temp_tex_coord_y, _mm256_div_ps(ones, _depth));
+                _temp_tex_coord_x = _mm256_div_ps(_temp_tex_coord_x, _mm256_rcp_ps(_depth));
+                _temp_tex_coord_y = _mm256_div_ps(_temp_tex_coord_y, _mm256_rcp_ps(_depth));
 
-            //temp_tex_coord.x -= std::floor(temp_tex_coord.x);
-            _temp_tex_coord_x = _mm256_floor_ps(_temp_tex_coord_x);
-            _temp_tex_coord_y = _mm256_floor_ps(_temp_tex_coord_y);
+                //temp_tex_coord.x -= std::floor(temp_tex_coord.x);
+                _temp_tex_coord_x = _mm256_sub_ps(_temp_tex_coord_x, _mm256_floor_ps(_temp_tex_coord_x));
+                _temp_tex_coord_y = _mm256_sub_ps(_temp_tex_coord_y, _mm256_floor_ps(_temp_tex_coord_y));
 
-            //set into integer registers
-            __m256i _final_tex_coord_x = _mm256_cvttps_epi32(_temp_tex_coord_x);
-            __m256i _final_tex_coord_y = _mm256_cvttps_epi32(_temp_tex_coord_y);
+                //int final_texture_x = (tex->get_width()-1) * temp_tex_coord.x;
+                //int final_texture_y = (tex->get_height()-1) * (-temp_tex_coord.y + 1);
+                __m256 _temp_tex_width = _mm256_set1_ps(tex->get_width()-1);
+                _temp_tex_coord_x = _mm256_mul_ps(_temp_tex_coord_x, _temp_tex_width);
+
+
+                __m256 _temp_tex_height = _mm256_set1_ps(tex->get_height()-1);
+
+                _temp_tex_coord_y = _mm256_fmadd_ps(_temp_tex_coord_y, _minus_one, _one);
+                _temp_tex_coord_y = _mm256_mul_ps(_temp_tex_coord_y, _temp_tex_height);
+
+                //set into integer registers
+                __m256i _final_tex_coord_x = _mm256_cvttps_epi32(_temp_tex_coord_x);
+                __m256i _final_tex_coord_y = _mm256_cvttps_epi32(_temp_tex_coord_y);
+
+                _mm256_store_si256((__m256i*)final_textures_x, _final_tex_coord_x);
+                _mm256_store_si256((__m256i*)final_textures_y, _final_tex_coord_y);
+            }
 
             float depths[8];        _mm256_store_ps(depths, _depth);
-            int final_textures_x[8]; _mm256_store_si256((__m256i*)final_textures_x, _final_tex_coord_x);
-            int final_textures_y[8]; _mm256_store_si256((__m256i*)final_textures_y, _final_tex_coord_y);
-
 
             //checking the bitmask to see which pixels are inside the triangle
             for(int i2 = 0; i2 < 8; i2++){
@@ -249,17 +271,20 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                     if(has_texture){
                         //printf("vou pintar heheh: x: %d, y: %d\n", final_textures_y[i2], final_textures_x[i2]);
 
+                        int final_texture_x0 = final_textures_x[i2];
+                        int final_texture_y0 = final_textures_y[i2];
 
-                        int final_texture_x0 = std::min(final_textures_x[i2], tex->get_width()-1);
-                        int final_texture_y0 = std::min(final_textures_y[i2], tex->get_height()-1);
+                        //int final_texture_x0 = std::min(final_textures_x[i2], tex->get_width()-1);
+                        //int final_texture_y0 = std::min(final_textures_y[i2], tex->get_height()-1);
 
-                        final_texture_x0 = std::max(final_texture_x0, 0);
-                        final_texture_y0 = std::max(final_texture_y0, 0);
+                        //final_texture_x0 = std::max(final_texture_x0, 0);
+                        //final_texture_y0 = std::max(final_texture_y0, 0);
 
 
                         color = tex->data[tex->get_width() * final_texture_y0 + final_texture_x0];//final_texture_y][final_texture_x];
                     }
 
+                    //_mm256_maskload_ps s->
                     s->set_depth_data(i, j+i2, depths[i2]);
                     s->draw_pixel(j+i2, i, color);
                 }
@@ -374,8 +399,20 @@ typedef struct{
 }vertex;
 
 void render_mesh(screen* s, mesh *m, camera cam){
-    vertex vertex_data[m->vertices.size()/3];
+    //system("cls");
+    //printf("inicio da funcao render mesh\n");
 
+    //printf("tamanho das vertices: %d", m->vertices.size());
+
+
+    auto lastTime = std::chrono::steady_clock::now();
+    float frameTimeSeconds = 1;
+
+
+    std::vector<vertex> vertex_data; vertex_data.reserve(m->vertices.size()/3);
+
+    //printf("tamanho das vertices: %d", m->vertices.size());
+    //maior gasto de fps (hehehe):
     for(int i = 0; i<m->vertices.size(); i += 3){
         vector3 point;
         point.set(m->vertices[i+0], m->vertices[i+1], m->vertices[i+2]);
@@ -384,15 +421,25 @@ void render_mesh(screen* s, mesh *m, camera cam){
 
         vertex_data[i/3].world_point = point;
 
-        vector2 new_point = world_to_screen(point, cam.fov, s->screen_width, s->screen_height);
-
-        vertex_data[i/3].converted_point = new_point;
+        vertex_data[i/3].converted_point = world_to_screen(point, cam.fov, s->screen_width, s->screen_height);
     }
+    auto currentTime = std::chrono::steady_clock::now();
 
+    std::chrono::duration<float> deltaTime = currentTime - lastTime;
+    frameTimeSeconds = deltaTime.count();
+
+    std::cout<<"time for matrices stuff:"<<frameTimeSeconds<<"|           "<<std::endl;
+    //system("pause");
+    lastTime = currentTime;
+
+    frameTimeSeconds = 1;
+
+     currentTime = std::chrono::steady_clock::now();
     std::string colors = " .:-=+*#%@";
     //draw triangles:
     for(int current_sub_mesh = 0; current_sub_mesh < m->triangles.size(); current_sub_mesh++){
         for(int i = 0; i < m->triangles[current_sub_mesh].size(); i+=3){
+            //printf("inicio do loop\n");
 
             int current_vertices[3] = {m->triangles[current_sub_mesh][i+0]-1, m->triangles[current_sub_mesh][i+1]-1, m->triangles[current_sub_mesh][i+2]-1};
 
@@ -429,7 +476,7 @@ void render_mesh(screen* s, mesh *m, camera cam){
             float light_level = std::min(dot+0.23, 1.0);
 
             char color = colors[int(range(0, colors.length()-1, 0, 1, light_level))];
-
+            //printf("estou renderizando\n");
             draw_triangle(s, vertex_data[current_vertices[0]].converted_point,
                              vertex_data[current_vertices[1]].converted_point,
                              vertex_data[current_vertices[2]].converted_point,
@@ -439,6 +486,13 @@ void render_mesh(screen* s, mesh *m, camera cam){
                              color, zvalues, &m->materials[m->get_current_material(current_sub_mesh)].albedo_texture, m->have_texture());
         }
     }
+    deltaTime = currentTime - lastTime;
+    frameTimeSeconds = deltaTime.count();
+
+    std::cout<<"time for triangle:"<<frameTimeSeconds<<"|             "<<std::endl;
+    //system("pause");
+    lastTime = currentTime;
+
     //std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;
     //system("pause");
 }
