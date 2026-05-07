@@ -86,3 +86,7 @@ public:
 vector3 rotated_by_x(vector3 point, float rotation);
 vector3 rotated_by_y(vector3 point, float rotation);
 vector3 rotated_by_z(vector3 point, float rotation);
+void matrix_mult4x4(const float mat1[][4], const float mat2[][4], float out[][4]);
+void matrix_mult4x1(const float mat1[][4], const float mat2[4], float out[4]);
+void calculate_local_to_world_matrix(vector3 position, vector3 rotation, vector3 scale, float out[][4]);
+void calculate_world_to_view_matrix(vector3 position, vector3 rotation, float out[][4]);

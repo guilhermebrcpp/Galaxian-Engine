@@ -6,7 +6,7 @@
 #include <math.h>
 #include "mesh.h"
 #include "texture.h"
-
+#include <cstring>
 #include <chrono>
 
 //for SIMD AVX2
@@ -412,17 +412,25 @@ void render_mesh(screen* s, mesh *m, camera cam){
     std::vector<vertex> vertex_data; vertex_data.reserve(m->vertices.size()/3);
 
     //printf("tamanho das vertices: %d", m->vertices.size());
-    //maior gasto de fps (hehehe):
+
+    //maior gasto de fps:
+    float local_to_world_mtx[4][4]; calculate_local_to_world_matrix(m->pos, m->rotation, m->scale, local_to_world_mtx);
+    float world_to_view_mtx[4][4]; calculate_world_to_view_matrix(cam.pos, cam.rotation, world_to_view_mtx);
+    float local_to_view_mtx[4][4]; matrix_mult4x4(world_to_view_mtx, local_to_world_mtx, local_to_view_mtx);
+
+    vector3 point;
     for(int i = 0; i<m->vertices.size(); i += 3){
-        vector3 point;
-        point.set(m->vertices[i+0], m->vertices[i+1], m->vertices[i+2]);
-        point = local_to_world(point, m->pos, m->rotation, m->scale);
-        point = to_view_space(point, cam.pos, cam.rotation);
+        float pointarr[4] = {m->vertices[i+0], m->vertices[i+1], m->vertices[i+2], 1};
+
+        matrix_mult4x1(local_to_view_mtx, pointarr, pointarr);
+
+        point.set(pointarr[0], pointarr[1], pointarr[2]);
 
         vertex_data[i/3].world_point = point;
 
         vertex_data[i/3].converted_point = world_to_screen(point, cam.fov, s->screen_width, s->screen_height);
     }
+
     auto currentTime = std::chrono::steady_clock::now();
 
     std::chrono::duration<float> deltaTime = currentTime - lastTime;

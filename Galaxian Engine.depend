@@ -74,7 +74,7 @@
 	"camera.h"
 	"mesh.h"
 
-1778006273 c:\users\victor\desktop\codigos c++\galaxian-engine\vector.h
+1778184960 c:\users\victor\desktop\codigos c++\galaxian-engine\vector.h
 	<math.h>
 	<iostream>
 
@@ -95,7 +95,7 @@
 
 1777918586 source:c:\users\victor\desktop\codigos c++\galaxian-engine\screen.cpp
 
-1777996496 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
+1778183557 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
 	<iostream>
 	"gameApp.h"
 	"player.h"
@@ -113,7 +113,7 @@
 	"camera.h"
 	"texture.h"
 
-1778005909 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
+1778178775 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
 	<iostream>
 	<vector>
 	"vector.h"
@@ -122,13 +122,14 @@
 	<math.h>
 	"mesh.h"
 	"texture.h"
+	<cstring>
 	<chrono>
 	<immintrin.h>
 
 1777918586 c:\users\victor\desktop\codigos c++\galaxian-engine\camera.h
 	"vector.h"
 
-1778006248 source:c:\users\victor\desktop\codigos c++\galaxian-engine\vector.cpp
+1778176812 source:c:\users\victor\desktop\codigos c++\galaxian-engine\vector.cpp
 	"vector.h"
 	<math.h>
 

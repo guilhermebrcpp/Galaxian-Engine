@@ -23,21 +23,17 @@ void start(){
     //ver pq q o parser ta uma merda (// //)
 
 
-    modelo1.load_material("mtls/model.mtl");
-    modelo1.load_model("models/model.obj");
-    //SkecthFab2
-    //SkecthFab2
+    modelo1.load_material("mtls/Wii_Coconut_Mall.mtl");
+    modelo1.load_model("models/Wii_Coconut_Mall.obj");
+    //model
+    //Wii_Coconut_Mall
     //plane text
     //modelo2.load_model("models/Mazda.obj");
     //modelo1.rotation.y = -1.57;
     //modelo1.rotation.z = 1.57;
-    modelo1.scale.set(100, 100, 100);
+    modelo1.scale.set(0.1, 0.1, 0.1);
     //modelo2.scale.set(0.01, 0.01, 0.01);
     p.start();
-
-
-    //modelo1.load_texture("textures/casato1h.txt");
-
 }
 
 void main_loop(float delta){
