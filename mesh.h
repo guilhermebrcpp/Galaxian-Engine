@@ -52,14 +52,18 @@ public:
         while (std::getline(inputFile, line)) {
             //reads vertices data
             if(starts_with("v ", line)){
+                //std::cout<<"estou pegando v:"<<line<<std::endl;
                 std::string number;
-                for(int i = 2; i < line.length(); i++){
-                    if(line[i] != ' ' && i != line.length()-1)
+                for(int i = 2; i <= line.length(); i++){
+                    if(line[i] != ' ' && i != line.length())
                         number += line[i];
                     else{
+
+                        //std::cout<<"numero q estou pegando:"<<number<<std::endl;
+                        //system("pause");
                         vertices.push_back(std::stof(number));
-                        if(vertices.size() != 0 && vertices.size()%3 == 0)
-                            break;
+                        //if(vertices.size() != 0 && vertices.size()%3 == 0)
+                        //    break;
                         number = "";
                     }
                 }
@@ -71,16 +75,12 @@ public:
                 //f 1/1/1 2/2/1 4/3/1 3/4/1
                 int vertex_count = 0;
                 std::string number = "";
-                for(int i = 2; i < line.length(); i++){
+                for(int i = 2; i <= line.length(); i++){
 
-                    if(line[i] != '/' && line[i] != ' '){
+                    if(line[i] != '/' && line[i] != ' ' && i != line.length()){
                         number += line[i];
                     }else{
-                        if(line[i] == ' '){
-                            which_number = 0;
-                            number = "";
-                            continue;
-                        }
+
                         switch(which_number){
                         //get vertex position
                         case 0:
@@ -97,11 +97,20 @@ public:
                                 sub_texture_mesh.push_back(sub_texture_mesh[sub_texture_mesh.size()-3]);
                                 sub_texture_mesh.push_back(sub_texture_mesh[sub_texture_mesh.size()-2]);
                             }
-                            sub_texture_mesh.push_back(std::stoi(number));
+                            if(number.length() != 0){
+                                sub_texture_mesh.push_back(std::stoi(number));
+                                //std::cout<<"adicionei:"<<number<<std::endl;
+                                //system("pause");
+                            }
                             break;
                         //get normal position
                         case 2:
                             break;
+                        }
+                        if(line[i] == ' '){
+                            which_number = 0;
+                            number = "";
+                            continue;
                         }
                         number = "";
                         which_number++;
@@ -113,8 +122,8 @@ public:
                 std::string number;
                 vector2 new_vec2;
                 bool first_num = false;
-                for(int i = 3; i < line.length(); i++){
-                    if(line[i] != ' ' && i != line.length()-1)
+                for(int i = 3; i <= line.length(); i++){
+                    if(line[i] != ' ' && i != line.length())
                         number += line[i];
                     else{
                         if(first_num == false){

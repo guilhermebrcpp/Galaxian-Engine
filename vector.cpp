@@ -145,8 +145,8 @@ void calculate_world_to_view_matrix(vector3 position, vector3 rotation, float ou
         {0, 0, 0, 1}
     };
 
-    float rotationz_cos = cos(rotation.z);
-    float rotationz_sin = sin(rotation.z);
+    float rotationz_cos = cos(-rotation.z);
+    float rotationz_sin = sin(-rotation.z);
     float rotation_z[4][4] = {
         {rotationz_cos, -rotationz_sin, 0, 0},
         {rotationz_sin, rotationz_cos, 0, 0},
@@ -178,5 +178,16 @@ void calculate_world_to_view_matrix(vector3 position, vector3 rotation, float ou
     matrix_mult4x4(translation_mtx, rotation_z, local_to_world_mtx);
     matrix_mult4x4(rotation_y, local_to_world_mtx, local_to_world_mtx);
     matrix_mult4x4(rotation_x, local_to_world_mtx, local_to_world_mtx);
+
     memcpy(out, local_to_world_mtx, sizeof(local_to_world_mtx));
+}
+
+void calculate_perspective_mtx(float aspect_ratio, float fov, float near, float far, float out[][4]){
+    float temp[4][4] = {
+        {1/(aspect_ratio*tan(fov/2)), 0, 0, 0},
+        {0, 1/(tan(fov/2)), 0, 0},
+        {0, 0, -((far+near)/(far-near)), -((2*far*near)/(far-near))},
+        {0, 0, -1, 0}
+    };
+    memcpy(out, temp, sizeof(temp));
 }

@@ -2,59 +2,19 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Release" />
-	<File name="inputHandler.h" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+	<File name="inputHandler.h" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="164" topLine="0" />
+			<Cursor1 position="145" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="main.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="4" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="195" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="renderer.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="5" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="256" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="camera.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="149" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="material.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="9" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="142" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="renderer.cpp" open="1" top="1" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="17540" topLine="405" />
-		</Cursor>
-	</File>
-	<File name="gameApp.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="246" topLine="2" />
-		</Cursor>
-	</File>
-	<File name="vector.h" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1211" topLine="37" />
-		</Cursor>
-	</File>
-	<File name="vector.cpp" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="314" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="inputHandler.cpp" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+	<File name="inputHandler.cpp" open="1" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="534" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="screen.cpp" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="vector.h" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="0" topLine="0" />
+			<Cursor1 position="2254" topLine="38" />
 		</Cursor>
 	</File>
 	<File name="texture.h" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="6" zoom_2="0">
@@ -62,19 +22,24 @@
 			<Cursor1 position="192" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="player.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="material.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="9" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="254" topLine="0" />
+			<Cursor1 position="142" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="player.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="screen.cpp" open="1" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="screen.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+	<File name="renderer.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="5" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="280" topLine="0" />
+			<Cursor1 position="256" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="gameApp.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="246" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="gameApp.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -82,12 +47,44 @@
 			<Cursor1 position="122" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="mesh.h" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="vector.cpp" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3179" topLine="94" />
+			<Cursor1 position="5728" topLine="143" />
 		</Cursor>
-		<Folding>
-			<Collapse line="27" />
-		</Folding>
+	</File>
+	<File name="screen.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="188" topLine="18" />
+		</Cursor>
+	</File>
+	<File name="player.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1863" topLine="41" />
+		</Cursor>
+	</File>
+	<File name="player.cpp" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="mesh.h" open="1" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="914" topLine="2" />
+		</Cursor>
+	</File>
+	<File name="camera.h" open="1" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="166" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="renderer.cpp" open="1" top="1" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="19379" topLine="443" />
+		</Cursor>
+	</File>
+	<File name="main.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="4" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="561" topLine="0" />
+		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
