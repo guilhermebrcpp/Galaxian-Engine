@@ -9,13 +9,14 @@ int main(){
 
     while(true){
         auto currentTime = std::chrono::steady_clock::now();
+        std::cout<<"FPS:"<<frameTimeSeconds<<std::endl;
         main_loop(frameTimeSeconds);
 
 
         std::chrono::duration<float> deltaTime = currentTime - lastTime;
         frameTimeSeconds = deltaTime.count();
 
-        std::cout<<"FPS:"<<frameTimeSeconds<<std::endl;
+
 
         lastTime = currentTime;
     }

@@ -7,7 +7,10 @@
 
 class mesh{
 public:
-    std::vector <float> vertices;
+    //need them separated for later optimizations using SIMD (this makes me very sad)
+    std::vector <float> vertices_x;
+    std::vector <float> vertices_y;
+    std::vector <float> vertices_z;
     std::vector <std::vector<int>> triangles;
     std::vector <std::string> materials_used_in_order;
     std::vector <vector2> vertex_texture;
@@ -54,6 +57,8 @@ public:
             if(starts_with("v ", line)){
                 //std::cout<<"estou pegando v:"<<line<<std::endl;
                 std::string number;
+                //which current number we are in the line, the order is: x, y, z
+                int which_num = 0;
                 for(int i = 2; i <= line.length(); i++){
                     if(line[i] != ' ' && i != line.length())
                         number += line[i];
@@ -61,9 +66,19 @@ public:
 
                         //std::cout<<"numero q estou pegando:"<<number<<std::endl;
                         //system("pause");
-                        vertices.push_back(std::stof(number));
-                        //if(vertices.size() != 0 && vertices.size()%3 == 0)
-                        //    break;
+                        switch(which_num){
+                            case 0:
+                                vertices_x.push_back(std::stof(number));
+                                break;
+                            case 1:
+                                vertices_y.push_back(std::stof(number));
+                                break;
+                            case 2:
+                                vertices_z.push_back(std::stof(number));
+                                break;
+                        }
+
+                        which_num++;
                         number = "";
                     }
                 }
@@ -163,7 +178,7 @@ public:
             triangle_quantity += triangles[i].size()/3;
         }
         std::cout<<"texture vertex quantity:"<<vertex_texture.size()<<std::endl;
-        std::cout<<"vertex quantity:"<<vertices.size()<<std::endl;
+        std::cout<<"vertex quantity:"<<vertices_x.size() + vertices_y.size() + vertices_z.size()<<std::endl;
         std::cout<<"triangle submesh quantity:"<<triangles.size()<<std::endl;
         std::cout<<"triangle quantity:"<<triangle_quantity<<std::endl;
         system("pause");
@@ -172,9 +187,9 @@ public:
         }
 
 
-        for(int i = 0; i < vertices.size(); i+=3){
+        //for(int i = 0; i < vertices.size(); i+=3){
             //std::cout<<"posicao "<<(i+1)/3<<" valor:"<<vertices[i]<<","<<vertices[i+1]<<","<<vertices[i+2]<<std::endl;
-        }
+        //}
 
         //for(int i = 0; i < vertex_texture.size(); i+=1){
         //    std::cout<<"vertex: "<<i<<" valor x:"<<vertex_texture[i].x<<"  valor y:"<<vertex_texture[i].y<<std::endl;

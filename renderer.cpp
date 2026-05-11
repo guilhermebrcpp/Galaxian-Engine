@@ -394,10 +394,14 @@ vector3 triangle_normal(vector3 a, vector3 b, vector3 c){
 }
 
 typedef struct{
-    vector3 world_point;
-    vector2 converted_point;
-    float depth;
-}vertex;
+    std::vector<float> world_point_x;
+    std::vector<float> world_point_y;
+    std::vector<float> world_point_z;
+
+    std::vector<float> converted_point_x;
+    std::vector<float> converted_point_y;
+    std::vector<float> depth;
+}vertexes;
 
 /*
 void matrix_mult4x1_simd(float mtx[][4], __m256 _final_points[4]){
@@ -461,9 +465,17 @@ void render_mesh(screen* s, mesh *m, camera cam){
     float frameTimeSeconds = 1;
 
 
-    std::vector<vertex> vertex_data; vertex_data.reserve(m->vertices.size()/3);
+    vertexes vertex_data;
+    vertex_data.converted_point_x.resize(m->vertices_x.size());
+    vertex_data.converted_point_y.resize(m->vertices_x.size());
 
-    printf("tamanho das vertices: %d", m->vertices.size());
+    vertex_data.world_point_x.resize(m->vertices_x.size());
+    vertex_data.world_point_y.resize(m->vertices_x.size());
+    vertex_data.world_point_z.resize(m->vertices_x.size());
+
+    vertex_data.depth.resize(m->vertices_x.size());
+    //system("cls");
+    //printf("tamanho das vertices: %d", m->vertices_x.size());
 
     //maior gasto de fps:
     float local_to_world_mtx[4][4]; calculate_local_to_world_matrix(m->pos, m->rotation, m->scale, local_to_world_mtx);
@@ -476,30 +488,28 @@ void render_mesh(screen* s, mesh *m, camera cam){
 
     vector3 point;
     //system("cls");
-    int q;
+    int q = 0;
 
     __m256 _points[4] __attribute__((aligned(32)));
     __m256i _index = _mm256_setr_epi32(0, 3, 6, 9, 12, 15, 18, 21);
     __m256 _onesf = _mm256_set1_ps(1.0f);
     __m256 _twosf = _mm256_set1_ps(2.0f);
 
-    for(q = 0; q < m->vertices.size()-3*8; q += 3*8){
-        int current_element = q/3;
+    //printf("antes de calcular simd\n");
 
-        //_points[0] = _mm256_i32gather_ps(&m->vertices[q+0], _index, 4);
-        //_points[1] = _mm256_i32gather_ps(&m->vertices[q+1], _index, 4);
-        //_points[2] = _mm256_i32gather_ps(&m->vertices[q+2], _index, 4);
+    for(; q < m->vertices_x.size()-8; q += 8){
+        int current_element = q;
 
-        _points[0] = _mm256_setr_ps(m->vertices[q+0], m->vertices[q+3], m->vertices[q+6], m->vertices[q+9], m->vertices[q+12], m->vertices[q+15], m->vertices[q+18], m->vertices[q+21]);
-        _points[1] = _mm256_setr_ps(m->vertices[q+1], m->vertices[q+4], m->vertices[q+7], m->vertices[q+10], m->vertices[q+13], m->vertices[q+16], m->vertices[q+19], m->vertices[q+22]);
-        _points[2] = _mm256_setr_ps(m->vertices[q+2], m->vertices[q+5], m->vertices[q+8], m->vertices[q+11], m->vertices[q+14], m->vertices[q+17], m->vertices[q+20], m->vertices[q+23]);
+        _points[0] = _mm256_loadu_ps(&m->vertices_x[q]);
+        _points[1] = _mm256_loadu_ps(&m->vertices_y[q]);
+        _points[2] = _mm256_loadu_ps(&m->vertices_z[q]);
         _points[3] = _mm256_set1_ps(1.0f);
 
         matrix_mult4x1_simd(_local_to_view_mtx, _points);
 
-        float xsw[8]; _mm256_store_ps(xsw, _points[0]);
-        float ysw[8]; _mm256_store_ps(ysw, _points[1]);
-        float zsw[8]; _mm256_store_ps(zsw, _points[2]);
+        _mm256_storeu_ps(&vertex_data.world_point_x[q], _points[0]);
+        _mm256_storeu_ps(&vertex_data.world_point_y[q], _points[1]);
+        _mm256_storeu_ps(&vertex_data.world_point_z[q], _points[2]);
 
         matrix_mult4x1_simd(_perspective_mtx, _points);
 
@@ -514,59 +524,42 @@ void render_mesh(screen* s, mesh *m, camera cam){
         //((1-(ys[j] / ws[j]))/2)*s->screen_height;
         _points[1] = _mm256_mul_ps(_mm256_div_ps(_mm256_sub_ps(_onesf, _mm256_mul_ps(_points[1], _onebyw)), _twosf), _screen_size);
 
-        _points[2] = _mm256_div_ps(_points[2], _points[3]);
+        _points[2] = _mm256_mul_ps(_points[2], _onebyw);
 
-        float xs[8]; _mm256_store_ps(xs, _points[0]);
-        float ys[8]; _mm256_store_ps(ys, _points[1]);
-        float zs[8]; _mm256_store_ps(zs, _points[2]);
-
-        vector3 points_world[8];
-        vector2 points_converted[8];
-        for(int j = 0; j < 8; j++){
-            points_world[j].x = xsw[j];
-            points_world[j].y = ysw[j];
-            points_world[j].z = zsw[j];
-
-            vertex_data[current_element+j].world_point = points_world[j];
-
-            points_converted[j].x = xs[j];
-            points_converted[j].y = ys[j];
-
-            vertex_data[current_element+j].depth = zs[j];
-            vertex_data[current_element+j].converted_point = points_converted[j];
-        }
+        _mm256_storeu_ps(&vertex_data.converted_point_x[q], _points[0]);
+        _mm256_storeu_ps(&vertex_data.converted_point_y[q], _points[1]);
+        _mm256_storeu_ps(&vertex_data.depth[q], _points[3]);
     }
 
-    auto currentTime = std::chrono::steady_clock::now();
-
-    std::chrono::duration<float> deltaTime = currentTime - lastTime;
-    frameTimeSeconds = deltaTime.count();
-
-    std::cout<<"time for matrices stuff:"<<frameTimeSeconds<<"|           "<<std::endl;
-    //system("pause");
-    lastTime = currentTime;
-
-    frameTimeSeconds = 1;
-
-     currentTime = std::chrono::steady_clock::now();
-
-    for(; q < m->vertices.size(); q += 3){
-        int current_element = q/3;
-        float pointarr[4] = {m->vertices[q+0], m->vertices[q+1], m->vertices[q+2], 1};
+    for(; q < m->vertices_x.size(); q++){
+        int current_element = q;
+        float pointarr[4] = {m->vertices_x[q], m->vertices_y[q], m->vertices_z[q], 1};
 
         matrix_mult4x1(local_to_view_mtx, pointarr, pointarr);
 
-        point.set(pointarr[0], pointarr[1], pointarr[2]);
-        vertex_data[current_element].world_point = point;
+        vertex_data.world_point_x[current_element] = pointarr[0];
+        vertex_data.world_point_y[current_element] = pointarr[1];
+        vertex_data.world_point_z[current_element] = pointarr[2];
 
         matrix_mult4x1(perspective_mtx, pointarr, pointarr);
 
-        vertex_data[current_element].depth = pointarr[2] / pointarr[3];
-        vector2 converted_point; converted_point.set((((pointarr[0] / pointarr[3])+1)/2)*s->screen_width,
-                                                     ((1-(pointarr[1] / pointarr[3]))/2)*s->screen_height);
-        vertex_data[current_element].converted_point = converted_point;
+        vertex_data.depth[current_element] = pointarr[2] / pointarr[3];
+
+        vertex_data.converted_point_x[current_element] = (((pointarr[0] / pointarr[3])+1)/2)*s->screen_width;
+        vertex_data.converted_point_y[current_element] = ((1-(pointarr[1] / pointarr[3]))/2)*s->screen_height;
     }
 
+        auto currentTime = std::chrono::steady_clock::now();
+
+        std::chrono::duration<float> deltaTime = currentTime - lastTime;
+        frameTimeSeconds = deltaTime.count();
+
+        std::cout<<"time for matrices stuff:"<<frameTimeSeconds<<"|           "<<std::endl;
+        lastTime = currentTime;
+
+        frameTimeSeconds = 1;
+
+     currentTime = std::chrono::steady_clock::now();
 
     std::string colors = " .:-=+*#%@";
     //draw triangles:
@@ -577,24 +570,27 @@ void render_mesh(screen* s, mesh *m, camera cam){
 
             int current_vertices[3] = {m->triangles[current_sub_mesh][i+0]-1, m->triangles[current_sub_mesh][i+1]-1, m->triangles[current_sub_mesh][i+2]-1};
 
-            //check if the triangle is counter clockwise
-            if(!is_triangle_ccw(vertex_data[current_vertices[0]].converted_point,
-                                vertex_data[current_vertices[1]].converted_point,
-                                vertex_data[current_vertices[2]].converted_point))
-                continue;
+            vector3 current_world_triangles[3];
+            current_world_triangles[0].set(vertex_data.world_point_x[current_vertices[0]], vertex_data.world_point_y[current_vertices[0]], vertex_data.world_point_z[current_vertices[0]]);
+            current_world_triangles[1].set(vertex_data.world_point_x[current_vertices[1]], vertex_data.world_point_y[current_vertices[1]], vertex_data.world_point_z[current_vertices[1]]);
+            current_world_triangles[2].set(vertex_data.world_point_x[current_vertices[2]], vertex_data.world_point_y[current_vertices[2]], vertex_data.world_point_z[current_vertices[2]]);
 
+            vector2 current_converted_points[3];
+            current_converted_points[0].set(vertex_data.converted_point_x[current_vertices[0]], vertex_data.converted_point_y[current_vertices[0]]);
+            current_converted_points[1].set(vertex_data.converted_point_x[current_vertices[1]], vertex_data.converted_point_y[current_vertices[1]]);
+            current_converted_points[2].set(vertex_data.converted_point_x[current_vertices[2]], vertex_data.converted_point_y[current_vertices[2]]);
+
+            //check if the triangle is counter clockwise
+            if(!is_triangle_ccw(current_converted_points[0],
+                                current_converted_points[1],
+                                current_converted_points[2]))
+                continue;
 
             vector3 zvalues;
-            //zvalues.set(vertex_data[current_vertices[0]].depth, vertex_data[current_vertices[1]].depth, vertex_data[current_vertices[2]].depth);
-            zvalues.set(vertex_data[current_vertices[0]].world_point.z, vertex_data[current_vertices[1]].world_point.z, vertex_data[current_vertices[2]].world_point.z);
-            //check if the z values are negative (behing camera)
-            //std::cout<<"z:"<<zvalues.x<<std::endl;
-            //float minzvaluerendered = 0.1;
-            //if(vertex_data[current_vertices[0]].world_point.z > -cam.cam_near) continue;
+            zvalues.set(current_world_triangles[0].z, current_world_triangles[1].z, current_world_triangles[2].z);
+            //check if the z values are behing near plane
             if(zvalues.x < cam.cam_near || zvalues.y < cam.cam_near || zvalues.z < cam.cam_near)
                 continue;
-
-            //dot product with the normals
 
             vector3 light_direction;
             light_direction.set(1, 1, 0);
@@ -604,7 +600,7 @@ void render_mesh(screen* s, mesh *m, camera cam){
             light_direction = rotated_by_y(light_direction, -cam.rotation.y);
             light_direction = rotated_by_x(light_direction, -cam.rotation.x);
 
-            vector3 current_normal = triangle_normal(vertex_data[current_vertices[0]].world_point, vertex_data[current_vertices[1]].world_point, vertex_data[current_vertices[2]].world_point);
+            vector3 current_normal = triangle_normal(current_world_triangles[0], current_world_triangles[1], current_world_triangles[2]);
             float dot = current_normal.dot(light_direction);
 
             if(dot < -1 || dot > 1) continue;
@@ -624,10 +620,10 @@ void render_mesh(screen* s, mesh *m, camera cam){
                 tex_pos3 = m->vertex_texture[m->vertex_texture_indices[current_sub_mesh][i+2]-1];
             }
 
-            //printf("estou renderizando\n");
-            draw_triangle(s, vertex_data[current_vertices[0]].converted_point,
-                             vertex_data[current_vertices[1]].converted_point,
-                             vertex_data[current_vertices[2]].converted_point,
+            //printf("antes de draw_triangle\n");
+            draw_triangle(s, current_converted_points[0],
+                             current_converted_points[1],
+                             current_converted_points[2],
                              tex_pos1,
                              tex_pos2,
                              tex_pos3,
@@ -636,11 +632,7 @@ void render_mesh(screen* s, mesh *m, camera cam){
     }
     deltaTime = currentTime - lastTime;
     frameTimeSeconds = deltaTime.count();
-
     std::cout<<"time for triangle:"<<frameTimeSeconds<<"|             "<<std::endl;
-    //system("pause");
     lastTime = currentTime;
 
-    //std::cout<<"TERMINEI DE RENDERIZAR A MESH!!!!!!!"<<std::endl;
-    //system("pause");
 }

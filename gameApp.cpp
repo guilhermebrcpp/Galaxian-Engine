@@ -10,7 +10,7 @@
 using namespace std;
 
 player p;
-screen game_screen(500, 250);
+screen game_screen(200, 100);
 mesh modelo1;
 mesh modelo2;
 camera c;
@@ -24,6 +24,7 @@ void start(){
 
     modelo1.load_material("mtls/model.mtl");
     modelo1.load_model("models/model.obj");
+    //2blinda
     //model
     //Wii_Coconut_Mall
     //plane text
@@ -41,11 +42,6 @@ void main_loop(float delta){
     game_screen.gotoxy(0, 0);
     update_keys_check();
 
-    if(is_key_pressed('P')){
-        //system("pause");
-        p.c.cam_near += 1.1;
-        printf("mudei o bagulho e agr ta: %f                     \n", p.c.cam_near);
-    }
     //system("cls");
     render_mesh(&game_screen, &modelo1, p.c);
     //render_mesh(&game_screen, modelo2, p.c, &tex1);
