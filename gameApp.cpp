@@ -10,42 +10,32 @@
 using namespace std;
 
 player p;
-screen game_screen(200, 100);
+screen game_screen(200, 155);
 mesh modelo1;
 mesh modelo2;
 camera c;
 
-void start(){
-    //todo:fazer o programa nao crashar se nao tiver um mtl
-    //adicionar suporte a matrizes 4x4
+void start(std::string model_name){
+    //todo:
     //adicionar edge conventions seja la oq for isso
-    //ver pq q o parser ta uma merda (// //)
+    //melhorar codigo das luzes
+    //melhorar codigo de triangulo sem SIMD
+    //crash quando nao carrega textura nem modelo
 
+    //.replace(materials[i].texture_file_name.length()-3, 3, "txt");
+    modelo1.load_material("mtls/" + model_name + "mtl");
+    modelo1.load_model("models/" + model_name +"obj");
 
-    modelo1.load_material("mtls/model.mtl");
-    modelo1.load_model("models/model.obj");
-    //2blinda
-    //model
-    //Wii_Coconut_Mall
-    //plane text
-    //modelo2.load_model("models/Mazda.obj");
-    //modelo1.rotation.y = -1.57;
-    //modelo1.rotation.z = 1.57*2;
-    modelo1.scale.set(110.1, 110.1, 110.1);
-    //modelo2.scale.set(0.01, 0.01, 0.01);
+    modelo1.scale.set(10.1, 10.1, 10.1);
     p.start();
 }
 
 void main_loop(float delta){
-    //2C
     p.loop(delta);
     game_screen.gotoxy(0, 0);
     update_keys_check();
 
-    //system("cls");
     render_mesh(&game_screen, &modelo1, p.c);
-    //render_mesh(&game_screen, modelo2, p.c, &tex1);
     game_screen.draw_screen();
     game_screen.clear_screen();
-    //p.loop();
 }

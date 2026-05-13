@@ -56,12 +56,16 @@
 	"vector.h"
 	<fstream>
 
-1778527564 source:c:\users\victor\desktop\codigos c++\galaxian-engine\main.cpp
+1778705566 source:c:\users\victor\desktop\codigos c++\galaxian-engine\main.cpp
 	<iostream>
 	"gameApp.h"
 	<chrono>
+	<dirent.h>
+	<sys/stat.h>
+	<windows.h>
+	<cwchar>
 
-1777918586 c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.h
+1778699560 c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.h
 	"player.h"
 	"screen.h"
 	"mesh.h"
@@ -84,7 +88,7 @@
 	"vector.h"
 	<windows.h>
 
-1778524982 c:\users\victor\desktop\codigos c++\galaxian-engine\mesh.h
+1778619313 c:\users\victor\desktop\codigos c++\galaxian-engine\mesh.h
 	<vector>
 	"vector.h"
 	<fstream>
@@ -95,7 +99,7 @@
 
 1777918586 source:c:\users\victor\desktop\codigos c++\galaxian-engine\screen.cpp
 
-1778528487 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
+1778705476 source:c:\users\victor\desktop\codigos c++\galaxian-engine\gameapp.cpp
 	<iostream>
 	"gameApp.h"
 	"player.h"
@@ -105,7 +109,7 @@
 	"camera.h"
 	"inputHandler.h"
 
-1777918586 c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.h
+1778616107 c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.h
 	<vector>
 	"vector.h"
 	"screen.h"
@@ -113,7 +117,7 @@
 	"camera.h"
 	"texture.h"
 
-1778528433 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
+1778687080 source:c:\users\victor\desktop\codigos c++\galaxian-engine\renderer.cpp
 	<iostream>
 	<vector>
 	"vector.h"
@@ -126,7 +130,7 @@
 	<chrono>
 	<immintrin.h>
 
-1778447900 c:\users\victor\desktop\codigos c++\galaxian-engine\camera.h
+1778613018 c:\users\victor\desktop\codigos c++\galaxian-engine\camera.h
 	"vector.h"
 
 1778447708 source:c:\users\victor\desktop\codigos c++\galaxian-engine\vector.cpp
@@ -138,7 +142,7 @@
 1777918586 c:\users\victor\desktop\codigos c++\galaxian-engine\material.h
 	"texture.h"
 
-1777918586 c:\users\victor\desktop\codigos c++\galaxian-engine\inputhandler.h
+1778616228 c:\users\victor\desktop\codigos c++\galaxian-engine\inputhandler.h
 	<windows.h>
 
 1777918586 source:c:\users\victor\desktop\codigos c++\galaxian-engine\inputhandler.cpp

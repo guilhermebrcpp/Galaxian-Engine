@@ -14,6 +14,7 @@ public:
         cam_far = 100;
         fov = 80;
         pos.set(0, 0, 0);
+        //rotate camera by 180 in the z axis to invert final image
         rotation.set(0, 0, 3.14159/2);
     }
 };

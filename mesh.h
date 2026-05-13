@@ -22,7 +22,7 @@ public:
     std::vector<material> materials;
 
     mesh(){
-        pos.set(0, 0, 0);//1.5708*2
+        pos.set(0, 0, 0);
         rotation.set(0, 0, 0);
         scale.set(1, 1, 1);
     }
@@ -182,31 +182,6 @@ public:
         std::cout<<"triangle submesh quantity:"<<triangles.size()<<std::endl;
         std::cout<<"triangle quantity:"<<triangle_quantity<<std::endl;
         system("pause");
-
-        for(int i = 0; i < triangles.size(); i++){
-        }
-
-
-        //for(int i = 0; i < vertices.size(); i+=3){
-            //std::cout<<"posicao "<<(i+1)/3<<" valor:"<<vertices[i]<<","<<vertices[i+1]<<","<<vertices[i+2]<<std::endl;
-        //}
-
-        //for(int i = 0; i < vertex_texture.size(); i+=1){
-        //    std::cout<<"vertex: "<<i<<" valor x:"<<vertex_texture[i].x<<"  valor y:"<<vertex_texture[i].y<<std::endl;
-        //}
-
-
-        /*for(int i = 0; i < triangles.size(); i++){
-            std::cout<<"submesh "<<i<<":\n";
-            for(int j = 70329*50; j < triangles[i].size(); j+=3){
-                std::cout<<"triangulo "<<(j+1)/3<<" valor:"<<triangles[i][j+0]<<","<<triangles[i][j+1]<<","<<triangles[i][j+2]<<std::endl;
-                printf("vertice1: %f, vertice2: %f, vertice3: %f\n", vertices[triangles[i][j+0]], vertices[triangles[i][j+1]], vertices[triangles[i][j+2]]);
-            }
-            //system("pause");
-        }*/
-        //system("pause");
-        //system("cls");
-
     }
 
     void set_texture(texture tex){
@@ -231,25 +206,18 @@ public:
 
         std::string line;
 
-        int tex_y = 0;
         while (std::getline(inputFile, line)) {
-
-            //std::cout<<"blablabla: "<<line<<std::endl;
             tex->data += line;
             tex->set_width(line.length());
-
-            //[tex_y][tex_x] = line[tex_x];
-            //tex_y++;
         }
 
         inputFile.close();
-
 
         tex->set_height(tex->data.length()/tex->get_width());
 
         std::cout<<"width:"<<tex->get_width()<<std::endl;
         std::cout<<"height:"<<tex->get_height()<<std::endl;
-        system("pause");
+        //system("pause");
         has_texture = true;
     }
 
@@ -310,7 +278,6 @@ public:
     int get_current_material(int sub_mesh_index){
         for(int i = 0; i < materials.size(); i++){
             if(materials_used_in_order[sub_mesh_index] == materials[i].name){
-                //std::cout<<"estou usando o material:"<<i<<std::endl;
                 return i;
             }
         }

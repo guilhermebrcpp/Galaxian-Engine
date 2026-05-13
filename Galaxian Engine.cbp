@@ -42,11 +42,9 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="material.h" />
 		<Unit filename="mesh.h" />
-		<Unit filename="player.cpp" />
 		<Unit filename="player.h" />
 		<Unit filename="renderer.cpp" />
 		<Unit filename="renderer.h" />
-		<Unit filename="screen.cpp" />
 		<Unit filename="screen.h" />
 		<Unit filename="texture.h" />
 		<Unit filename="vector.cpp" />
