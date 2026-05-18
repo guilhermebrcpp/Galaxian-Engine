@@ -5,4 +5,4 @@
 //#include "renderer.h"
 
 void main_loop(float delta);
-void start(std::string model_name);
+void start();

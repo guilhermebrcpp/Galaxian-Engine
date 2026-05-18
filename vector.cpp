@@ -1,4 +1,5 @@
 #include "vector.h"
+#include <immintrin.h>
 #include <math.h>
 
 vector3 rotated_by_x(vector3 point, float rotation){
@@ -125,7 +126,6 @@ void calculate_local_to_world_matrix(vector3 position, vector3 rotation, vector3
     memcpy(out, local_to_world_mtx, sizeof(local_to_world_mtx));
 }
 
-
 void calculate_world_to_view_matrix(vector3 position, vector3 rotation, float out[][4]){
     float rotationx_cos = cos(-rotation.x);
     float rotationx_sin = sin(-rotation.x);
@@ -190,4 +190,38 @@ void calculate_perspective_mtx(float aspect_ratio, float fov, float near, float 
         {0, 0, -1, 0}
     };
     memcpy(out, temp, sizeof(temp));
+}
+
+void matrix_mult4x1_simd(__m256 _mtx[4][4], __m256 _final_points[4]){
+	__m256 _points[4] __attribute__((aligned(32)));
+	_points[0] = _final_points[0];
+	_points[1] = _final_points[1];
+	_points[2] = _final_points[2];
+	_points[3] = _final_points[3];
+
+    for(int i = 0; i < 4; i++){
+        _final_points[i] = _mm256_fmadd_ps(_mtx[i][0], _points[0], _mm256_fmadd_ps(_mtx[i][1], _points[1], _mm256_fmadd_ps(_mtx[i][2], _points[2], _mm256_mul_ps(_mtx[i][3], _points[3]))));
+	}
+}
+
+void load_values_simd_mtx(float mtx[][4], __m256 simd_mtx[][4]){
+    simd_mtx[0][0] = _mm256_broadcast_ss(&mtx[0][0]);
+    simd_mtx[0][1] = _mm256_broadcast_ss(&mtx[0][1]);
+    simd_mtx[0][2] = _mm256_broadcast_ss(&mtx[0][2]);
+    simd_mtx[0][3] = _mm256_broadcast_ss(&mtx[0][3]);
+
+    simd_mtx[1][0] = _mm256_broadcast_ss(&mtx[1][0]);
+    simd_mtx[1][1] = _mm256_broadcast_ss(&mtx[1][1]);
+    simd_mtx[1][2] = _mm256_broadcast_ss(&mtx[1][2]);
+    simd_mtx[1][3] = _mm256_broadcast_ss(&mtx[1][3]);
+
+    simd_mtx[2][0] = _mm256_broadcast_ss(&mtx[2][0]);
+    simd_mtx[2][1] = _mm256_broadcast_ss(&mtx[2][1]);
+    simd_mtx[2][2] = _mm256_broadcast_ss(&mtx[2][2]);
+    simd_mtx[2][3] = _mm256_broadcast_ss(&mtx[2][3]);
+
+    simd_mtx[3][0] = _mm256_broadcast_ss(&mtx[3][0]);
+    simd_mtx[3][1] = _mm256_broadcast_ss(&mtx[3][1]);
+    simd_mtx[3][2] = _mm256_broadcast_ss(&mtx[3][2]);
+    simd_mtx[3][3] = _mm256_broadcast_ss(&mtx[3][3]);
 }

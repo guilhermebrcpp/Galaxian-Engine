@@ -12,8 +12,12 @@
 //for SIMD AVX2
 #include <immintrin.h>
 
+// Colors used for Shading the triangles when light is enabled (from darkest to brightest)
+const std::string colors = " .:-=+*#%@";
+
 inline vector3 local_to_world(vector3 point, vector3 model_position, vector3 model_rotation, vector3 scale){
     vector3 final_point = point;
+
     //rotation
     final_point = rotated_by_x(final_point, model_rotation.x);
     final_point = rotated_by_y(final_point, model_rotation.y);
@@ -34,6 +38,7 @@ inline vector3 to_view_space(vector3 point, vector3 camera_position, vector3 cam
     //position
     point.sub(camera_position);
     vector3 final_point = point;
+
     //rotation
     final_point = rotated_by_y(final_point, -camera_rotation.y);
     final_point = rotated_by_x(final_point, -camera_rotation.x);
@@ -51,7 +56,7 @@ inline vector2 world_to_screen(vector3 point, float fov, int screen_width, int s
 }
 
 float triangle_area(vector2 a, vector2 b, vector2 c){
-//(1/2) (( x1(y2 − y3) + x2(y3 − y1) + x3(y1 − y2)))
+    //(1/2) (( x1(y2 − y3) + x2(y3 − y1) + x3(y1 − y2)))
     return (abs((a.x*(b.y - c.y)) + (b.x*(c.y - a.y)) + (c.x*(a.y - b.y))))/2;
 }
 
@@ -80,10 +85,10 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
     int bounding_box_y_max = std::max(std::max(std::ceil(a.y), std::ceil(b.y)), std::ceil(c.y));
 
     // Make sure the box is not outside the screen
-    bounding_box_x_min = std::min(s->screen_width-1, std::max(0, bounding_box_x_min));
-    bounding_box_x_max = std::min(s->screen_width-1, std::max(0, bounding_box_x_max));
-    bounding_box_y_min = std::min(s->screen_height-1, std::max(0, bounding_box_y_min));
-    bounding_box_y_max = std::min(s->screen_height-1, std::max(0, bounding_box_y_max));
+    bounding_box_x_min = std::min(s->get_screen_width()-1, std::max(0, bounding_box_x_min));
+    bounding_box_x_max = std::min(s->get_screen_width()-1, std::max(0, bounding_box_x_max));
+    bounding_box_y_min = std::min(s->get_screen_height()-1, std::max(0, bounding_box_y_min));
+    bounding_box_y_max = std::min(s->get_screen_height()-1, std::max(0, bounding_box_y_max));
 
     vector2 tri[3] = {a, b, c};
 
@@ -157,8 +162,9 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
         __m256 _w0 = _w0_start_x;
         __m256 _w1 = _w1_start_x;
         __m256 _w2 = _w2_start_x;
-        int j;
-        for(j = bounding_box_x_min; j <= bounding_box_x_max-8; j+=8){
+        int j = bounding_box_x_min;
+
+        for(; j <= bounding_box_x_max-8; j+=8){
             // Checking: w0 >= 0, w1 >= 0, w2 >= 0 (if the condition is true, the current pixel is inside a triangle)
             __m256 _mask1 = _mm256_cmp_ps(_w0, _zeroes, _CMP_GE_OQ);
         	__m256 _mask2 = _mm256_cmp_ps(_w1, _zeroes, _CMP_GE_OQ);
@@ -258,7 +264,7 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
                 _mm256_store_si256((__m256i*)final_textures_y, _final_tex_coord_y);
             }
 
-            float depths[8];        _mm256_store_ps(depths, _depth);
+            float depths[8]; _mm256_store_ps(depths, _depth);
 
             // Checking the bitmask to see which pixels are inside the triangle
             for(int i2 = 0; i2 < 8; i2++){
@@ -295,9 +301,9 @@ void draw_triangle(screen* s, vector2 a, vector2 b, vector2 c, vector2 tex_pos1,
             if(new_w0 >= 0 && new_w1 >= 0 && new_w2 >= 0){
                 point.set(j, i);
 
-                    current_weight.x = edge_function(b, c, point) / current_triangle_area;
-                    current_weight.y = edge_function(c, a, point) / current_triangle_area;
-                    current_weight.z = edge_function(a, b, point) / current_triangle_area;
+                    current_weight.x = new_w1 / current_triangle_area;
+                    current_weight.y = new_w2 / current_triangle_area;
+                    current_weight.z = new_w0 / current_triangle_area;
 
 
                     float invZ = current_weight.x * (inverse_z1) +
@@ -390,39 +396,7 @@ typedef struct{
     std::vector<float> depth;
 }vertexes;
 
-void matrix_mult4x1_simd(__m256 _mtx[4][4], __m256 _final_points[4]){
-	__m256 _points[4] __attribute__((aligned(32)));
-	_points[0] = _final_points[0];
-	_points[1] = _final_points[1];
-	_points[2] = _final_points[2];
-	_points[3] = _final_points[3];
 
-    for(int i = 0; i < 4; i++){
-        _final_points[i] = _mm256_fmadd_ps(_mtx[i][0], _points[0], _mm256_fmadd_ps(_mtx[i][1], _points[1], _mm256_fmadd_ps(_mtx[i][2], _points[2], _mm256_mul_ps(_mtx[i][3], _points[3]))));
-	}
-}
-
-void load_values_simd_mtx(float mtx[][4], __m256 simd_mtx[][4]){
-    simd_mtx[0][0] = _mm256_broadcast_ss(&mtx[0][0]);
-    simd_mtx[0][1] = _mm256_broadcast_ss(&mtx[0][1]);
-    simd_mtx[0][2] = _mm256_broadcast_ss(&mtx[0][2]);
-    simd_mtx[0][3] = _mm256_broadcast_ss(&mtx[0][3]);
-
-    simd_mtx[1][0] = _mm256_broadcast_ss(&mtx[1][0]);
-    simd_mtx[1][1] = _mm256_broadcast_ss(&mtx[1][1]);
-    simd_mtx[1][2] = _mm256_broadcast_ss(&mtx[1][2]);
-    simd_mtx[1][3] = _mm256_broadcast_ss(&mtx[1][3]);
-
-    simd_mtx[2][0] = _mm256_broadcast_ss(&mtx[2][0]);
-    simd_mtx[2][1] = _mm256_broadcast_ss(&mtx[2][1]);
-    simd_mtx[2][2] = _mm256_broadcast_ss(&mtx[2][2]);
-    simd_mtx[2][3] = _mm256_broadcast_ss(&mtx[2][3]);
-
-    simd_mtx[3][0] = _mm256_broadcast_ss(&mtx[3][0]);
-    simd_mtx[3][1] = _mm256_broadcast_ss(&mtx[3][1]);
-    simd_mtx[3][2] = _mm256_broadcast_ss(&mtx[3][2]);
-    simd_mtx[3][3] = _mm256_broadcast_ss(&mtx[3][3]);
-}
 
 void render_mesh(screen* s, mesh *m, camera cam){
     auto lastTime = std::chrono::steady_clock::now();
@@ -440,15 +414,13 @@ void render_mesh(screen* s, mesh *m, camera cam){
     vertex_data.depth.resize(m->vertices_x.size());
 
     // Pre calculate 4x4 Homogeneous Transformation Matrices
-    float local_to_world_mtx[4][4]; calculate_local_to_world_matrix(m->pos, m->rotation, m->scale, local_to_world_mtx);
-    float world_to_view_mtx[4][4]; calculate_world_to_view_matrix(cam.pos, cam.rotation, world_to_view_mtx);
+    float local_to_world_mtx[4][4];                             calculate_local_to_world_matrix(m->pos, m->rotation, m->scale, local_to_world_mtx);
+    float world_to_view_mtx[4][4];                              calculate_world_to_view_matrix(cam.pos, cam.rotation, world_to_view_mtx);
     float local_to_view_mtx[4][4] __attribute__((aligned(32))); matrix_mult4x4(world_to_view_mtx, local_to_world_mtx, local_to_view_mtx);
-    float perspective_mtx[4][4] __attribute__((aligned(32))); calculate_perspective_mtx(float(s->screen_width)/float(s->screen_height), cam.fov, cam.cam_near, cam.cam_far, perspective_mtx);
+    float perspective_mtx[4][4] __attribute__((aligned(32)));   calculate_perspective_mtx(float(s->get_screen_width())/float(s->get_screen_height()), cam.fov, cam.cam_near, cam.cam_far, perspective_mtx);
 
     __m256 _local_to_view_mtx[4][4]; load_values_simd_mtx(local_to_view_mtx, _local_to_view_mtx);
-    __m256 _perspective_mtx[4][4]; load_values_simd_mtx(perspective_mtx, _perspective_mtx);
-
-
+    __m256 _perspective_mtx[4][4];   load_values_simd_mtx(perspective_mtx, _perspective_mtx);
 
     __m256 _points[4] __attribute__((aligned(32)));
     // Constants
@@ -474,13 +446,13 @@ void render_mesh(screen* s, mesh *m, camera cam){
 
         matrix_mult4x1_simd(_perspective_mtx, _points);
 
-        __m256 _screen_size = _mm256_set1_ps(float(s->screen_width));
+        __m256 _screen_size = _mm256_set1_ps(float(s->get_screen_width()));
         __m256 _onebyw = _mm256_rcp_ps(_points[3]);
 
         //(((x / w)+1)/2)*s->screen_width;
         _points[0] = _mm256_mul_ps(_mm256_div_ps(_mm256_add_ps(_mm256_mul_ps(_points[0], _onebyw), _onesf), _twosf), _screen_size);
 
-        _screen_size = _mm256_set1_ps(float(s->screen_height));
+        _screen_size = _mm256_set1_ps(float(s->get_screen_width()));
 
         //((1-(y / w]))/2)*s->screen_height;
         _points[1] = _mm256_mul_ps(_mm256_div_ps(_mm256_sub_ps(_onesf, _mm256_mul_ps(_points[1], _onebyw)), _twosf), _screen_size);
@@ -507,24 +479,23 @@ void render_mesh(screen* s, mesh *m, camera cam){
 
         vertex_data.depth[current_element] = pointarr[2] / pointarr[3];
 
-        vertex_data.converted_point_x[current_element] = (((pointarr[0] / pointarr[3])+1)/2)*s->screen_width;
-        vertex_data.converted_point_y[current_element] = ((1-(pointarr[1] / pointarr[3]))/2)*s->screen_height;
+        vertex_data.converted_point_x[current_element] = (((pointarr[0] / pointarr[3])+1)/2)*s->get_screen_width();
+        vertex_data.converted_point_y[current_element] = ((1-(pointarr[1] / pointarr[3]))/2)*s->get_screen_height();
     }
 
-        auto currentTime = std::chrono::steady_clock::now();
+    auto currentTime = std::chrono::steady_clock::now();
 
-        std::chrono::duration<float> deltaTime = currentTime - lastTime;
-        frameTimeSeconds = deltaTime.count();
+    std::chrono::duration<float> deltaTime = currentTime - lastTime;
+    frameTimeSeconds = deltaTime.count();
 
-        std::cout<<"time for matrices stuff:"<<frameTimeSeconds<<"|           "<<std::endl;
-        lastTime = currentTime;
+    //std::cout<<"time for matrices stuff:"<<frameTimeSeconds<<"|           "<<std::endl;
+    lastTime = currentTime;
 
-        frameTimeSeconds = 1;
+    frameTimeSeconds = 1;
 
-     currentTime = std::chrono::steady_clock::now();
+    currentTime = std::chrono::steady_clock::now();
 
-    std::string colors = " .:-=+*#%@";
-    //draw triangles:
+    // Passing through all the sub meshes and rendering them
     for(int current_sub_mesh = 0; current_sub_mesh < m->triangles.size(); current_sub_mesh++){
         for(int i = 0; i < m->triangles[current_sub_mesh].size(); i+=3){
             int current_vertices[3] = {m->triangles[current_sub_mesh][i+0]-1, m->triangles[current_sub_mesh][i+1]-1, m->triangles[current_sub_mesh][i+2]-1};
@@ -548,48 +519,57 @@ void render_mesh(screen* s, mesh *m, camera cam){
             if(zvalues.x < cam.cam_near || zvalues.y < cam.cam_near || zvalues.z < cam.cam_near)
                 continue;
 
-            // Calculate light
-            vector3 light_direction;
-            light_direction.set(1, 1, 0);
-            light_direction = light_direction.normalized();
-
-            // Inverse rotating the light by the camera angle to fix the light angle
-            light_direction = rotated_by_y(light_direction, -cam.rotation.y);
-            light_direction = rotated_by_x(light_direction, -cam.rotation.x);
-
-            vector3 current_normal = triangle_normal(current_world_triangles[0], current_world_triangles[1], current_world_triangles[2]);
-            float dot = current_normal.dot(light_direction);
-
-            if(dot < -1 || dot > 1) continue;
-            if(dot < 0) dot = 0;
-            if(dot > 1) dot = 1;
-
-            float light_level = std::min(dot+0.23, 1.0);
-
-            char color = colors[int(range(0, colors.length()-1, 0, 1, light_level))];
+            char triangle_color_shaded;
 
             vector2 tex_pos1;
             vector2 tex_pos2;
             vector2 tex_pos3;
 
+            // Setting texture UV coordinates
             if(m->have_texture()){
                 tex_pos1 = m->vertex_texture[m->vertex_texture_indices[current_sub_mesh][i+0]-1];
                 tex_pos2 = m->vertex_texture[m->vertex_texture_indices[current_sub_mesh][i+1]-1];
                 tex_pos3 = m->vertex_texture[m->vertex_texture_indices[current_sub_mesh][i+2]-1];
             }
+            // Calculate light (it is only calculated when there is no texture) [very inefficient code]
+            else{
+                vector3 light_direction;
+                light_direction.set(1, 1, 0);
+                light_direction = light_direction.normalized();
 
-            draw_triangle(s, current_converted_points[0],
-                             current_converted_points[1],
-                             current_converted_points[2],
-                             tex_pos1,
-                             tex_pos2,
-                             tex_pos3,
-                             color, zvalues, &m->materials[m->get_current_material(current_sub_mesh)].albedo_texture, m->have_texture());
+                // Inverse rotating the light by the camera angle to fix the light angle
+                light_direction = rotated_by_y(light_direction, -cam.rotation.y);
+                light_direction = rotated_by_x(light_direction, -cam.rotation.x);
+
+                vector3 current_normal = triangle_normal(current_world_triangles[0], current_world_triangles[1], current_world_triangles[2]);
+                float dot = current_normal.dot(light_direction);
+
+                if(dot < -1 || dot > 1) continue;
+                if(dot < 0) dot = 0;
+                if(dot > 1) dot = 1;
+
+                float light_level = std::min(dot+0.23, 1.0);
+
+                triangle_color_shaded = colors[int(range(0, colors.length()-1, 0, 1, light_level))];
+            }
+
+            draw_triangle(
+                s, // The screen that it will draw to
+                current_converted_points[0],
+                current_converted_points[1],
+                current_converted_points[2],
+                tex_pos1,
+                tex_pos2,
+                tex_pos3,
+                triangle_color_shaded, // If the model has no texture, it will use this color in the triangle
+                zvalues, // Depth values of points in the triangle
+                &m->materials[m->get_current_material(current_sub_mesh)].albedo_texture, // The texture of the submesh
+                m->have_texture()
+            );
         }
     }
     deltaTime = currentTime - lastTime;
     frameTimeSeconds = deltaTime.count();
-    std::cout<<"time for triangle:"<<frameTimeSeconds<<"|             "<<std::endl;
+    //std::cout<<"time for triangle:"<<frameTimeSeconds<<"|             "<<std::endl;
     lastTime = currentTime;
-
 }

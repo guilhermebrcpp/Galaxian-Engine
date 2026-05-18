@@ -1,6 +1,7 @@
 #pragma once
 #include <math.h>
 #include <iostream>
+#include <immintrin.h>
 
 class vector3{
 public:
@@ -83,6 +84,31 @@ public:
     }
 };
 
+class vector2i{
+public:
+    int x = 0;
+    int y = 0;
+
+    void set(int x, int y){
+        this->x = x;
+        this->y = y;
+    }
+
+    void add(vector2 a){
+        this->x += a.x;
+        this->y += a.y;
+    }
+
+    void sub(vector2 a){
+        this->x -= a.x;
+        this->y -= a.y;
+    }
+
+    void print(){
+        std::cout<<"X: "<<x<<" Y:"<<y<<std::endl;
+    }
+};
+
 vector3 rotated_by_x(vector3 point, float rotation);
 vector3 rotated_by_y(vector3 point, float rotation);
 vector3 rotated_by_z(vector3 point, float rotation);
@@ -91,3 +117,5 @@ void matrix_mult4x1(const float mat1[][4], const float mat2[4], float out[4]);
 void calculate_local_to_world_matrix(vector3 position, vector3 rotation, vector3 scale, float out[][4]);
 void calculate_world_to_view_matrix(vector3 position, vector3 rotation, float out[][4]);
 void calculate_perspective_mtx(float aspect_ratio, float fov, float near, float far, float out[][4]);
+void matrix_mult4x1_simd(__m256 _mtx[4][4], __m256 _final_points[4]);
+void load_values_simd_mtx(float mtx[][4], __m256 simd_mtx[][4]);

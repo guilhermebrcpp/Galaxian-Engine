@@ -6,15 +6,16 @@
 
 class screen{
 public:
-    std::string screen_data;
-    int screen_width;
-    int screen_height;
-    //this should be private but i need it public to easier access and performance reasons
-    std::vector<float> depth_data;
-
     screen(int screen_width, int screen_height){
+        set_screen_resolution(screen_width, screen_height);
+    }
+
+    void set_screen_resolution(int screen_width, int screen_height){
         this->screen_width  = screen_width;
         this->screen_height = screen_height;
+
+        screen_data = "";
+        depth_data.clear();
 
         for(int i = 0; i<screen_height; i++){
             for(int j = 0; j<screen_width; j++){
@@ -57,7 +58,6 @@ public:
     }
 
     void draw_screen(){
-        std::string colors = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:.\"^'. ";
         std::cout<<screen_data;
     }
 
@@ -70,4 +70,17 @@ public:
         }
     }
 
+    int get_screen_width(){
+        return screen_width;
+    }
+
+    int get_screen_height(){
+        return screen_height;
+    }
+private:
+    int screen_width;
+    int screen_height;
+
+    std::string screen_data;
+    std::vector<float> depth_data;
 };
