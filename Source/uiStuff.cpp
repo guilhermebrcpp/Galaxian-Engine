@@ -124,12 +124,13 @@ vector2i ask_and_get_user_resolution(){
 std::string ask_and_get_user_model(){
     DIR *dr;
 
-    char models_path[] = ".\\models";
+    char models_path[] = "./assets/models";
     dr = opendir(models_path);
 
     if(dr == NULL){
         perror("Could not open models directory");
-        return "1";
+        system("pause");
+        std::exit(-1);
     }
     dirent *drir = readdir(dr);
 
@@ -143,7 +144,7 @@ std::string ask_and_get_user_model(){
             std::cout<<"("<<models_quantity<<") "<<drir->d_name<<std::endl;
 
             std::string model_name = drir->d_name;
-            model_name.erase(model_name.length() - 3);
+            model_name.erase(model_name.length() - 4);
 
             all_models_paths.push_back(model_name);
             models_quantity++;

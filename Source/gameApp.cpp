@@ -10,8 +10,6 @@
 #include "inputHandler.h"
 #include "objParser.h"
 
-using namespace std;
-
 player p;
 screen game_screen(400, 300);
 mesh modelo1;
@@ -36,8 +34,8 @@ void start(){
 
     prepare_screen_for_rendering(game_screen.get_screen_width(), game_screen.get_screen_height());
 
-    load_material("mtls/" + model_name + "mtl", &modelo1);
-    load_model("models/" + model_name +"obj", &modelo1);
+    load_material("assets/mtls/" + model_name + ".mtl", &modelo1);
+    load_model("assets/models/" + model_name + ".obj", &modelo1);
 
     modelo1.scale.set(10.1, 10.1, 10.1);
     p.start();

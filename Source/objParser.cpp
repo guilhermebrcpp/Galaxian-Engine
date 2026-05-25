@@ -23,7 +23,6 @@ void load_model(std::string file_path, mesh *m){
         return;
     }
 
-
     std::string line;
     std::vector<int> sub_mesh;
     std::vector<int> sub_texture_mesh;
@@ -227,6 +226,6 @@ void load_material(std::string file_path, mesh *m){
 
         m->materials[i].texture_file_name.replace(m->materials[i].texture_file_name.length()-3, 3, "txt");
         //std::cout<<"nome blabla:"<<materials[i].texture_file_name<<std::endl;
-        load_texture("textures\\" + m->materials[i].texture_file_name, &m->materials[i].albedo_texture, m);
+        load_texture("assets/textures/" + m->materials[i].texture_file_name, &m->materials[i].albedo_texture, m);
     }
 }

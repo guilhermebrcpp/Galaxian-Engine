@@ -396,8 +396,6 @@ typedef struct{
     std::vector<float> depth;
 }vertexes;
 
-
-
 void render_mesh(screen* s, mesh *m, camera cam){
     auto lastTime = std::chrono::steady_clock::now();
     float frameTimeSeconds = 1;
@@ -423,6 +421,7 @@ void render_mesh(screen* s, mesh *m, camera cam){
     __m256 _perspective_mtx[4][4];   load_values_simd_mtx(perspective_mtx, _perspective_mtx);
 
     __m256 _points[4] __attribute__((aligned(32)));
+
     // Constants
     __m256 _onesf = _mm256_set1_ps(1.0f);
     __m256 _twosf = _mm256_set1_ps(2.0f);
@@ -461,7 +460,7 @@ void render_mesh(screen* s, mesh *m, camera cam){
 
         _mm256_storeu_ps(&vertex_data.converted_point_x[q], _points[0]);
         _mm256_storeu_ps(&vertex_data.converted_point_y[q], _points[1]);
-        _mm256_storeu_ps(&vertex_data.depth[q], _points[3]);
+        _mm256_storeu_ps(&vertex_data.depth[q], _points[2]);
     }
 
     // Calculate the last ~=7 vertices without using SIMD
@@ -515,6 +514,7 @@ void render_mesh(screen* s, mesh *m, camera cam){
                 continue;
 
             vector3 zvalues; zvalues.set(current_world_triangles[0].z, current_world_triangles[1].z, current_world_triangles[2].z);
+
             // Check if the z values are behing near plane
             if(zvalues.x < cam.cam_near || zvalues.y < cam.cam_near || zvalues.z < cam.cam_near)
                 continue;
@@ -544,7 +544,6 @@ void render_mesh(screen* s, mesh *m, camera cam){
                 vector3 current_normal = triangle_normal(current_world_triangles[0], current_world_triangles[1], current_world_triangles[2]);
                 float dot = current_normal.dot(light_direction);
 
-                if(dot < -1 || dot > 1) continue;
                 if(dot < 0) dot = 0;
                 if(dot > 1) dot = 1;
 
