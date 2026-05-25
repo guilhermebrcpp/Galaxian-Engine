@@ -451,7 +451,7 @@ void render_mesh(screen* s, mesh *m, camera cam){
         //(((x / w)+1)/2)*s->screen_width;
         _points[0] = _mm256_mul_ps(_mm256_div_ps(_mm256_add_ps(_mm256_mul_ps(_points[0], _onebyw), _onesf), _twosf), _screen_size);
 
-        _screen_size = _mm256_set1_ps(float(s->get_screen_width()));
+        _screen_size = _mm256_set1_ps(float(s->get_screen_height()));
 
         //((1-(y / w]))/2)*s->screen_height;
         _points[1] = _mm256_mul_ps(_mm256_div_ps(_mm256_sub_ps(_onesf, _mm256_mul_ps(_points[1], _onebyw)), _twosf), _screen_size);
