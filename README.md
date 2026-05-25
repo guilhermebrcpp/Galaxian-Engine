@@ -1,2 +1,3 @@
 # Galaxian Engine
-3D ASCII Renderer
+
+A simple 3D Engine for ASCII graphics on the terminal
