@@ -4,7 +4,7 @@ project(Galaxian_Engine)
 
 file(GLOB SOURCES "Source/*.cpp") 
 
-add_compile_options(-O2 -mavx2 -mfma) 
+add_compile_options(-O2 -mavx2 -mfma -static) 
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
@@ -17,6 +17,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE
+    -static
     -static-libgcc
     -static-libstdc++
 )

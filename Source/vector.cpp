@@ -17,7 +17,6 @@ vector3 rotated_by_x(vector3 point, float rotation){
 }
 
 vector3 rotated_by_y(vector3 point, float rotation){
-    //y rotation
     vector3 rotationyx; rotationyx.set(cos(rotation), 0, sin(rotation));
     vector3 rotationyy; rotationyy.set(0, 1, 0);
     vector3 rotationyz; rotationyz.set(-sin(rotation), 0, cos(rotation));
@@ -32,7 +31,6 @@ vector3 rotated_by_y(vector3 point, float rotation){
 }
 
 vector3 rotated_by_z(vector3 point, float rotation){
-    //y rotation
     vector3 rotationzx; rotationzx.set(cos(rotation),-sin(rotation), 0);
     vector3 rotationzy; rotationzy.set(sin(rotation), cos(rotation), 0);
     vector3 rotationzz; rotationzz.set(0, 0, 1);

@@ -12,7 +12,7 @@ int main(){
 
     while(true){
         auto currentTime = std::chrono::steady_clock::now();
-        std::cout<<"FPS:"<<frameTimeSeconds<<std::endl;
+        std::cout<<"FPS:"<<1/frameTimeSeconds<<std::endl;
 
         main_loop(frameTimeSeconds);
 

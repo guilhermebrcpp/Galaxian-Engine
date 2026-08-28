@@ -9,13 +9,14 @@
 #include "camera.h"
 #include "inputHandler.h"
 #include "objParser.h"
+#include "font_loader.h"
 
 player p;
 screen game_screen(400, 300);
 mesh modelo1;
 mesh modelo2;
 camera c;
-
+vector<std::string> numbers;
 void start(){
     //todo:
     //adicionar edge conventions seja la oq for isso
@@ -26,7 +27,9 @@ void start(){
     //botar resolucao customizada
     //configuracoes avançadas
     //fazer ele verificar se o arquivo passado realmente é um .obj
-
+    std::cout<<"Welcome to Galaxian 3D renderer."<<std::endl;
+    std::cout<<"To render a custom model you should move it the the assets/models folder."<<std::endl;
+    std::cout<<"Camera controls: WASD for horizonal movement. EQ for vertical movement, IJKL for camera rotation."<<std::endl;
     std::string model_name = ask_and_get_user_model();
     vector2i resolution = ask_and_get_user_resolution();
 
@@ -39,7 +42,13 @@ void start(){
 
     modelo1.scale.set(10.1, 10.1, 10.1);
     p.start();
+
+    load_font("assets/fonts/default_numbers.txt", &numbers);
 }
+
+float time_passed = 0;
+int frame_quantity = 0;
+int current_fps = 0;
 
 void main_loop(float delta){
     p.loop(delta);
@@ -47,6 +56,15 @@ void main_loop(float delta){
     update_keys_check();
 
     render_mesh(&game_screen, &modelo1, p.c);
+    time_passed += delta;
+    frame_quantity++;
+    // If half a second has passed update the number in fps counter
+    if(time_passed >= 0.96/2){
+        current_fps = 1 / (time_passed / frame_quantity);
+        frame_quantity = 0;
+        time_passed = 0;
+    }
+    game_screen.draw_number(numbers, current_fps, 0, 1);
     game_screen.draw_screen();
     game_screen.clear_screen();
 }

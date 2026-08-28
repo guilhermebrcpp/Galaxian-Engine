@@ -29,7 +29,6 @@ void load_model(std::string file_path, mesh *m){
     while (std::getline(inputFile, line)) {
         //reads vertices data
         if(starts_with("v ", line)){
-            //std::cout<<"estou pegando v:"<<line<<std::endl;
             std::string number;
             //which current number we are in the line, the order is: x, y, z
             int which_num = 0;
@@ -37,8 +36,6 @@ void load_model(std::string file_path, mesh *m){
                 if(line[i] != ' ' && i != line.length())
                     number += line[i];
                 else{
-                    //std::cout<<"numero q estou pegando:"<<number<<std::endl;
-                    //system("pause");
                     switch(which_num){
                         case 0:
                             m->vertices_x.push_back(std::stof(number));
@@ -209,10 +206,6 @@ void load_material(std::string file_path, mesh *m){
     inputFile.close();
 
     std::cout<<"materials quantity:"<<m->materials.size()<<std::endl;
-    for(int i = 0; i < m->materials.size(); i++){
-        //std::cout<<"nome do material:"<<materials[i].name<<std::endl;
-        //std::cout<<"nome da textura:"<<materials[i].texture_file_name<<std::endl;
-    }
 
     //load all textures for the submaterials
     for(int i = 0; i < m->materials.size(); i++){
@@ -225,7 +218,6 @@ void load_material(std::string file_path, mesh *m){
         }
 
         m->materials[i].texture_file_name.replace(m->materials[i].texture_file_name.length()-3, 3, "txt");
-        //std::cout<<"nome blabla:"<<materials[i].texture_file_name<<std::endl;
         load_texture("assets/textures/" + m->materials[i].texture_file_name, &m->materials[i].albedo_texture, m);
     }
 }

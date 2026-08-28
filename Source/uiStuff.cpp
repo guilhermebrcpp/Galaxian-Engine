@@ -12,7 +12,7 @@ int maximum_screen_y(){
     int monitor_height = GetSystemMetrics(SM_CYSCREEN);
     int resolution_offset = 80;
     int minimum_font_y = 2;
-    return  (monitor_height - resolution_offset) / (minimum_font_y);
+    return (monitor_height - resolution_offset) / (minimum_font_y);
 }
 
 void prepare_screen_for_rendering(int screen_width, int screen_height){
@@ -40,9 +40,9 @@ void prepare_screen_for_rendering(int screen_width, int screen_height){
     wcscpy_s(cfi.FaceName, L"Courier New");
 
     if(SetCurrentConsoleFontEx(hConsole, FALSE, &cfi)){
-        std::cout<<"consegui mudar tamanho da fonte"<<std::endl;
+        std::cout<<"Changed font size"<<std::endl;
     }else{
-        std::cout<<"nao consegui mudar tamanho da fonte"<<std::endl;
+        std::cout<<"Could not change font size"<<std::endl;
     }
 
     // Change console buffer size
@@ -50,9 +50,9 @@ void prepare_screen_for_rendering(int screen_width, int screen_height){
     console_size.X = screen_width + 10;
     console_size.Y = screen_height + 10;
     if(SetConsoleScreenBufferSize(hConsole, console_size)){
-        std::cout<<"consegui mudartamanho do buffers"<<std::endl;
+        std::cout<<"Changed the buffer size"<<std::endl;
     }else{
-        std::cout<<"nao consegui mudar tamanho do buffer"<<std::endl;
+        std::cout<<"Could not change the buffer size"<<std::endl;
     }
 
 
@@ -71,9 +71,9 @@ void prepare_screen_for_rendering(int screen_width, int screen_height){
     window_size.Right = window_size_x;
     window_size.Bottom =  window_size_y;
     if(SetConsoleWindowInfo(hConsole, TRUE, &window_size)){
-        std::cout<<"consegui mudar tamanho da janela"<<std::endl;
+        std::cout<<"Changed window size"<<std::endl;
     }else{
-        std::cout<<"nao consegui mudar tamanho da janela"<<std::endl;
+        std::cout<<"Could not change window size"<<std::endl;
     }
 }
 

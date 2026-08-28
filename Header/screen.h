@@ -77,6 +77,33 @@ public:
     int get_screen_height(){
         return screen_height;
     }
+
+    void draw_font_letter(std::string letter, int x, int y){
+        int curr_x = 0;
+        int curr_y = 0;
+        for(int i = 0; i < letter.size(); i++){
+            if(letter[i] == '\n'){
+                curr_y++;
+                curr_x = 0;
+                continue;
+            }
+            draw_pixel(x + curr_x, y + curr_y, letter[i]);
+            curr_x++;
+        }
+    }
+
+    void draw_number(std::vector<std::string> font, int number, int x, int y){
+        std::vector<int> digits;
+
+        while(number > 0){
+            digits.push_back(number % 10);
+            number /= 10;
+        }
+
+        for(int i = digits.size() - 1, j = 0; i >= 0; i--, j++){
+            draw_font_letter(font[digits[i] + 20], x + j*8, y);
+        }
+    }
 private:
     int screen_width;
     int screen_height;
