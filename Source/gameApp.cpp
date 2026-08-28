@@ -27,8 +27,8 @@ void start(){
     //botar resolucao customizada
     //configuracoes avançadas
     //fazer ele verificar se o arquivo passado realmente é um .obj
-    std::cout<<"Welcome to Galaxian 3D renderer."<<std::endl;
-    std::cout<<"To render a custom model you should move it the the assets/models folder."<<std::endl;
+    std::cout<<"Welcome to the Galaxian 3D renderer."<<std::endl;
+    std::cout<<"To render a custom model you should move the file to the assets/models folder."<<std::endl;
     std::cout<<"Camera controls: WASD for horizonal movement. EQ for vertical movement, IJKL for camera rotation."<<std::endl;
     std::string model_name = ask_and_get_user_model();
     vector2i resolution = ask_and_get_user_resolution();
